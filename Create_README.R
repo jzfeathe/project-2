@@ -7,4 +7,3 @@ rmarkdown::render("Project_2_Vignette.Rmd",
                     df_print = "tibble"
                   )
 )
-
