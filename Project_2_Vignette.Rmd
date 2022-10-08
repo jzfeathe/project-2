@@ -4,8 +4,8 @@ author: "Justin Feathers & Luke Perkins"
 date: "2022-10-08"
 ---
 
-```{r setup, include=FALSE, message = FALSE, warning = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 # Heading
