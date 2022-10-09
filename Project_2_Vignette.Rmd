@@ -6,17 +6,95 @@ date: "2022-10-08"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(httr)
+library(tidyverse)
+library(jsonlite)
 ```
 
-# Heading
+# Requirements
+
+The following packages were used to create this document:
+  + `knitr`: used to document code in R Markdown format
+  + `httr`: used to connect to the API
+  + `tidyverse`: used for pipe operators and plotting
+  + `jsonlite`: used for interacting with JSON in the API
+
+## API Functions
+
+Replace spaces with underscores. Used in name and city functions. Seems unneeded, keep for now.
 
 ```{r}
-library(tidyverse)
-print("Hello")
-iris
-print(iris)
+conv_und <- function(x){
+  str_replace_all(x, " ", "_")
+  return(x)
+}
 ```
 
-## Heading 2
+Search breweries by city
 
-Test
+```{r}
+by_city <- function(city){
+  if (!is.character(city)){
+    stop("city must be a character string")
+  }
+  else {
+    base <- "https://api.openbrewerydb.org/breweries"
+    url <- paste0(base, "?by_city=", city)
+    city_df <- fromJSON(rawToChar(GET(url)$content))
+    if (length(city_df) == 0 ){
+      message("No results found. Try a different city.")
+    }
+    else {
+      return(city_df)
+    }
+  }
+}
+```
+
+Search breweries by name. Incorporate into one function via wrappers or separate arguments.
+
+```{r}
+by_name <- function(brewery){
+  if (!is.character(brewery)){
+    stop("brewery must be a character string")
+  }
+  else {
+    base <- "https://api.openbrewerydb.org/breweries"
+    url <- paste0(base, "?by_name=", brewery)
+    brew_df <- fromJSON(rawToChar(GET(url)$content))
+    if (length(brew_df) == 0 ){
+      message("No results found. Try a different brewery.")
+    }
+    else {
+      return(brew_df)
+    }
+  }
+}
+```
+
+Search breweries by state
+
+```{r}
+by_state <- function(state, USA = TRUE){
+  if (!is.character(state)){
+    stop("state must be a character string")
+  }
+  else {
+    if (USA){
+      #CODE TO MAP 2CHAR NAMES TO STATE IF LENGTH 2 OR TAKE THE STATE IF NOT
+    } 
+    else {
+      base <- "https://api.openbrewerydb.org/breweries"
+      url <- paste0(base, "?by_state=", state)
+      state_df <- fromJSON(rawToChar(GET(url)$content))
+      if (length(state_df) == 0 ){
+        message("No results found. Try a different state.")
+      }
+      else {
+        return(state_df)
+      }
+    }
+  }
+}
+```
+
