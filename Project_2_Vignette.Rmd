@@ -128,3 +128,22 @@ by_postal <- function(postal){
   }
 }
 ```
+
+```{r}
+by_dist <- function(latitude, longitude){
+  if ((!is.numeric(latitude)) | (!is.numeric(longitude))){
+    stop("Latitude and longitude must be numeric values")
+  }
+  else {
+    base <- "https://api.openbrewerydb.org/breweries"
+    url <- paste0(base, "?by_dist=", latitude, ",", longitude)
+    dist_df <- fromJSON(rawToChar(GET(url)$content))
+    if (length(dist_df) == 0 ){
+    message("No results found. Try different latitude and/or longitude.")
+      }
+      else {
+        return(dist_df)
+      }
+    }
+  }
+```
