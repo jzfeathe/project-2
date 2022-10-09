@@ -21,11 +21,11 @@ The following packages were used to create this document:
 
 ## API Functions
 
-Replace spaces with underscores. Used in name and city functions. Seems unneeded, keep for now.
+Replace spaces with underscores. Used in name and city functions.
 
 ```{r}
 conv_und <- function(x){
-  str_replace_all(x, " ", "_")
+  x <- str_replace_all(x, " ", "_")
   return(x)
 }
 ```
@@ -37,37 +37,33 @@ by_city <- function(city){
   if (!is.character(city)){
     stop("city must be a character string")
   }
+  base <- "https://api.openbrewerydb.org/breweries"
+  url <- paste0(base, "?by_city=", city)
+  city_df <- fromJSON(rawToChar(GET(url)$content))
+  if (length(city_df) == 0 ){
+    message("No results found. Try a different city.")
+  }
   else {
-    base <- "https://api.openbrewerydb.org/breweries"
-    url <- paste0(base, "?by_city=", city)
-    city_df <- fromJSON(rawToChar(GET(url)$content))
-    if (length(city_df) == 0 ){
-      message("No results found. Try a different city.")
-    }
-    else {
-      return(city_df)
-    }
+    return(city_df)
   }
 }
 ```
 
-Search breweries by name. Incorporate into one function via wrappers or separate arguments.
+Search breweries by name. Can search by parts of the brewery name.
 
 ```{r}
 by_name <- function(brewery){
   if (!is.character(brewery)){
     stop("brewery must be a character string")
   }
+  base <- "https://api.openbrewerydb.org/breweries"
+  url <- paste0(base, "?by_name=", brewery)
+  brew_df <- fromJSON(rawToChar(GET(url)$content))
+  if (length(brew_df) == 0 ){
+    message("No results found. Try a different brewery.")
+  }
   else {
-    base <- "https://api.openbrewerydb.org/breweries"
-    url <- paste0(base, "?by_name=", brewery)
-    brew_df <- fromJSON(rawToChar(GET(url)$content))
-    if (length(brew_df) == 0 ){
-      message("No results found. Try a different brewery.")
-    }
-    else {
-      return(brew_df)
-    }
+    return(brew_df)
   }
 }
 ```
@@ -75,25 +71,103 @@ by_name <- function(brewery){
 Search breweries by state
 
 ```{r}
-by_state <- function(state, USA = TRUE){
+by_state <- function(state, usa = TRUE){
   if (!is.character(state)){
     stop("state must be a character string")
   }
-  else {
-    if (USA){
-      #CODE TO MAP 2CHAR NAMES TO STATE IF LENGTH 2 OR TAKE THE STATE IF NOT
-    } 
-    else {
-      base <- "https://api.openbrewerydb.org/breweries"
-      url <- paste0(base, "?by_state=", state)
-      state_df <- fromJSON(rawToChar(GET(url)$content))
-      if (length(state_df) == 0 ){
-        message("No results found. Try a different state.")
-      }
-      else {
-        return(state_df)
-      }
+  if (usa){
+    if (nchar(state) == 2){
+      state <- toupper(state)
+      switch(state,
+                    AL =  state <- "Alabama",
+                    AK =  state <- "Alaska",
+                    AZ =  state <- "Arizona",
+                    AR =  state <- "Arkansas",
+                    CA =  state <- "California",
+                    CO =  state <- "Colorado",
+                    CT =  state <- "Connecticut",
+                    DE =  state <- "Delaware",
+                    DC =  state <- "District_of_Columbia",
+                    FL =  state <- "Florida",
+                    GA =  state <- "Georgia",
+                    HI =  state <- "Hawaii",
+                    ID =  state <- "Idaho",
+                    IL =  state <- "Illinois",
+                    IN =  state <- "Indiana",
+                    IA =  state <- "Iowa",
+                    KS =  state <- "Kansas",
+                    KY =  state <- "Kentucky",
+                    LA =  state <- "Louisiana",
+                    ME =  state <- "Maine",
+                    MD =  state <- "Maryland",
+                    MA =  state <- "Massachusetts",
+                    MI =  state <- "Michigan",
+                    MN =  state <- "Minnesota",
+                    MS =  state <- "Mississippi",
+                    MO =  state <- "Missouri",
+                    MT =  state <- "Montana",
+                    NE =  state <- "Nebraska",
+                    NV =  state <- "Nevada",
+                    NH =  state <- "New_Hampshire",
+                    NJ =  state <- "New_Jersey",
+                    NM =  state <- "New_Mexico",
+                    NY =  state <- "New_York",
+                    NC =  state <- "North_Carolina",
+                    ND =  state <- "North_Dakota",
+                    OH =  state <- "Ohio",
+                    OK =  state <- "Oklahoma",
+                    OR =  state <- "Oregon",
+                    PA =  state <- "Pennsylvania",
+                    PR =  state <- "Puerto_Rico",
+                    RI =  state <- "Rhode_Island",
+                    SC =  state <- "South_Carolina",
+                    SD =  state <- "South_Dakota",
+                    TN =  state <- "Tennessee",
+                    TX =  state <- "Texas",
+                    UT =  state <- "Utah",
+                    VT =  state <- "Vermont",
+                    VA =  state <- "Virginia",
+                    WA =  state <- "Washington",
+                    WV =  state <- "West_Virginia",
+                    WI =  state <- "Wisconsin",
+                    WY =  state <- "Wyoming",
+                    stop("USA state must be a 2 character abbreviation or name")
+             )
     }
+  }
+  base <- "https://api.openbrewerydb.org/breweries"
+  url <- paste0(base, "?by_state=", state)
+  state_df <- fromJSON(rawToChar(GET(url)$content))
+  if (length(state_df) == 0 ){
+    message("No results found. Try a different state.")
+  }
+  else {
+    return(state_df)
+  }
+}
+```
+
+By type of brewery
+
+```{r}
+by_type <- function(type){
+  if (!is.character(type)){
+    stop("type must be a character string")
+  }
+  type <- tolower(type)
+  type_list <- c("micro", "nano", "regional", "brewpub", "large", "planning",
+                    "bar", "contract", "proprietor", "closed")
+  if (!(type %in% type_list)){
+    stop("type must be either micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, or closed")
+  }
+  base <- "https://api.openbrewerydb.org/breweries"
+  url <- paste0(base, "?by_type=", type)
+  type_df <- fromJSON(rawToChar(GET(url)$content))
+  if (length(type_df) == 0 ){
+    message("No results found. Try a different type.")
+  }
+  else {
+    return(type_df)
   }
 }
 ```
@@ -147,3 +221,122 @@ by_dist <- function(latitude, longitude){
     }
   }
 ```
+
+Wrapper function
+
+Default pulls breweries
+
+```{r}
+get_brewery <- function(city = NULL, state = NULL, usa = FALSE, type = NULL,
+                        name = NULL){
+  url <- "https://api.openbrewerydb.org/breweries?"
+  if (is.null(c(city, state, name, type))){
+    url <- "https://api.openbrewerydb.org/breweries"
+  }
+  
+  if (!is.null(city)){
+    if (!is.character(city)){
+      stop("city must be a character string")
+    }
+    url <- paste0(url, "&by_city=", conv_und(city))
+  }
+  
+  if (!is.null(type)){
+    if (!is.character(type)){
+      stop("type must be a character string")
+    }
+    type <- tolower(type)
+    type_list <- c("micro", "nano", "regional", "brewpub", "large", "planning",
+                    "bar", "contract", "proprietor", "closed")
+    if (!(type %in% type_list)){
+    stop("type must be either micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, or closed")
+    }
+    url <- paste0(url, "&by_type=", conv_und(type))
+  }
+  
+  if (!is.null(name)){
+    if (!is.character(name)){
+      stop("brewery must be a character string")
+    }
+    url <- paste0(url, "&by_name=", name)
+  }
+  
+  if(!is.null(state)){
+    if (!is.character(state)){
+      stop("state must be a character string")
+    }
+    if (usa){
+      if (nchar(state) == 2){
+        state <- toupper(state)
+        switch(state,
+                      AL =  state <- "Alabama",
+                      AK =  state <- "Alaska",
+                      AZ =  state <- "Arizona",
+                      AR =  state <- "Arkansas",
+                      CA =  state <- "California",
+                      CO =  state <- "Colorado",
+                      CT =  state <- "Connecticut",
+                      DE =  state <- "Delaware",
+                      DC =  state <- "District_of_Columbia",
+                      FL =  state <- "Florida",
+                      GA =  state <- "Georgia",
+                      HI =  state <- "Hawaii",
+                      ID =  state <- "Idaho",
+                      IL =  state <- "Illinois",
+                      IN =  state <- "Indiana",
+                      IA =  state <- "Iowa",
+                      KS =  state <- "Kansas",
+                      KY =  state <- "Kentucky",
+                      LA =  state <- "Louisiana",
+                      ME =  state <- "Maine",
+                      MD =  state <- "Maryland",
+                      MA =  state <- "Massachusetts",
+                      MI =  state <- "Michigan",
+                      MN =  state <- "Minnesota",
+                      MS =  state <- "Mississippi",
+                      MO =  state <- "Missouri",
+                      MT =  state <- "Montana",
+                      NE =  state <- "Nebraska",
+                      NV =  state <- "Nevada",
+                      NH =  state <- "New_Hampshire",
+                      NJ =  state <- "New_Jersey",
+                      NM =  state <- "New_Mexico",
+                      NY =  state <- "New_York",
+                      NC =  state <- "North_Carolina",
+                      ND =  state <- "North_Dakota",
+                      OH =  state <- "Ohio",
+                      OK =  state <- "Oklahoma",
+                      OR =  state <- "Oregon",
+                      PA =  state <- "Pennsylvania",
+                      PR =  state <- "Puerto_Rico",
+                      RI =  state <- "Rhode_Island",
+                      SC =  state <- "South_Carolina",
+                      SD =  state <- "South_Dakota",
+                      TN =  state <- "Tennessee",
+                      TX =  state <- "Texas",
+                      UT =  state <- "Utah",
+                      VT =  state <- "Vermont",
+                      VA =  state <- "Virginia",
+                      WA =  state <- "Washington",
+                      WV =  state <- "West_Virginia",
+                      WI =  state <- "Wisconsin",
+                      WY =  state <- "Wyoming",
+                      stop("USA state must be a 2 character abbreviation or name")
+               )
+      }
+    }
+    url <- paste0(url, "&by_state=", state)
+  }
+  
+  url <- str_replace(url, "&", "")
+  df <- fromJSON(rawToChar(GET(url)$content))
+  if (length(df) == 0 ){
+    message("No results found. Try different parameters")
+  }
+  else {
+    return(df)
+  }
+}
+```
+
+
