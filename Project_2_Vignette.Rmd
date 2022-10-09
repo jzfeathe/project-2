@@ -5,7 +5,7 @@ date: "2022-10-08"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
 library(httr)
 library(tidyverse)
 library(jsonlite)
@@ -98,3 +98,33 @@ by_state <- function(state, USA = TRUE){
 }
 ```
 
+```{r}
+by_postal <- function(postal){
+  if (!is.numeric(postal)){
+    stop("Postal code must be a 5 or 9 digit number")
+  }
+  else {
+    if ((nchar(postal) != 5) & (nchar(postal) != 9)){
+      stop("Postal code must be a 5 or 9 digit number")
+    }
+    else {
+      base <- "https://api.openbrewerydb.org/breweries"
+      if (nchar(postal) == 9){
+        newpostal <- sub("(.{5})(.*)", "\\1-\\2", postal)
+        url <- paste0(base, "?by_postal=", newpostal)
+        postal_df <- fromJSON(rawToChar(GET(url)$content))
+      }
+      if (nchar(postal) == 5){
+        url <- paste0(base, "?by_postal=", postal)
+        postal_df <- fromJSON(rawToChar(GET(url)$content))
+      }
+      if (length(postal_df) == 0){
+      message("No results found. Try a different postal code.")
+    }
+      else {
+        return(postal_df)
+      }
+    }
+  }
+}
+```
