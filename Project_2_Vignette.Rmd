@@ -343,4 +343,50 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
 }
 ```
 
+Derive Region variable from state, make contingency tables, create bar graph.
 
+```{r}
+brew <- get_brewery()
+
+brew_reg <- brew %>%
+  mutate(Region = 
+    if_else(brew$state %in%
+    c("Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", 
+      "Vermont", "New Jersey", "New York", "Pennsylvania"),
+    "Northeast",
+    if_else(brew$state %in%
+    c("Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin", "Iowa", "Kansas", 
+      "Minnesota", "Missouri", "Nebraska", "North Dakota", "South Dakota"),
+    "Midwest",
+    if_else(brew$state %in%
+    c("Delaware", "Florida", "Georgia", "Maryland", "North Carolina",
+      "South Carolina", "Virginia", "Washington D.C.", "West Virginia", 
+      "Alabama", "Kentucky", "Mississippi", "Tennessee", "Arkansas",
+      "Louisiana", "Oklahoma", "Texas"),
+    "South",
+    if_else(brew$state %in%
+    c("Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", "Utah",
+      "Wyoming", "Alaska", "California","Hawaii","Oregon","Washington"),
+    "West", 
+    "Not US"))))) %>%
+  select(id:state, Region, everything())
+
+table(brew_reg$Region)
+table(brew_reg$brewery_type)
+table(brew_reg$Region, brew_reg$brewery_type)
+
+g <- ggplot(brew_reg, aes(x = Region))
+g + geom_bar(aes(fill = brewery_type)) +
+    labs(x = "Geographic Region",
+         y = "Number of Breweries",
+         title = "Bar Plot of Breweries by US Region") + 
+    scale_fill_discrete(name = "Brewery Type", 
+                        labels = c("Brewpub", "Closed", "Contract", "Large",
+                                   "Micro", "Proprietor")
+  )
+
+micro <- get_brewery(type = "micro")
+large <- get_brewery(type = "large")
+combined <- bind_rows(micro, large)
+
+```
