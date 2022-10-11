@@ -19,7 +19,7 @@ The following packages were used to create this document:
   + `tidyverse`: used for pipe operators and plotting
   + `jsonlite`: used for interacting with JSON in the API
 
-## API Functions
+# API Functions
 
 Search breweries by city
 
@@ -343,4 +343,31 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
 }
 ```
 
+#Exploratory Data Analysis
+Now that we can access the endpoint with up to six different modifications, we can get some data
+to analyze. We'll start by calling the function `get_brewery(state = "ny")` to get brewery data
+for the state of New York.
+```{r}
+#Get brewery data for NY
+ny <- get_brewery(state = "ny")
+```
 
+We want to see if there are any patterns by type of brewery. To do this, we will investigate
+latitude and longitude values across brewery types.
+```{r}
+nyDist <- ny %>% 
+  select(name, brewery_type, latitude, longitude) %>%
+  group_by(brewery_type) %>%
+  mutate(Mean_Lat = mean(as.numeric(latitude), na.rm = TRUE), 
+         Mean_Long = mean(as.numeric(longitude), na.rm = TRUE))
+```
+
+Now that we have the data, let's create a scatter plot to look for obvious patterns.
+```{r}
+g <- ggplot(na.omit(nyDist), aes(x = longitude, y = latitude))
+g + geom_point(aes(color = brewery_type)) +
+    labs(color = "Brewery Type", x = "Longitude", y = "Latitude") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+    labs(title = "NY Breweries by Type", hjust = 0.5) +
+    theme(plot.title = element_text(hjust = 0.5))
+```
