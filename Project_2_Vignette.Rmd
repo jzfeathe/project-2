@@ -227,11 +227,11 @@ Wrapper function
 Default pulls breweries
 
 ```{r}
-get_brewery <- function(city = NULL, state = NULL, usa = FALSE, type = NULL,
-                        name = NULL){
-  url <- "https://api.openbrewerydb.org/breweries?"
-  if (is.null(c(city, state, name, type))){
-    url <- "https://api.openbrewerydb.org/breweries"
+get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, name = NULL,
+                        postal = NULL, latitude = NULL, longitude = NULL){
+  url <- "https://api.openbrewerydb.org/breweries?per_page=50"
+  if (is.null(c(city, state, type, name, postal, latitude, longitude))){
+    url <- "https://api.openbrewerydb.org/breweries?per_page=50"
   }
   
   if (!is.null(city)){
@@ -323,12 +323,33 @@ get_brewery <- function(city = NULL, state = NULL, usa = FALSE, type = NULL,
                       WY =  state <- "Wyoming",
                       stop("USA state must be a 2 character abbreviation or name")
                )
+        
+    url <- paste0(url, "&by_state=", state)
       }
     }
-    url <- paste0(url, "&by_state=", state)
   }
-  
-  url <- str_replace(url, "&", "")
+  if (!is.null(postal)){
+    if (!is.numeric(postal)){
+      stop("Postal code must be a 5 or 9 digit number")
+    }
+    if ((nchar(postal) != 5) & (nchar(postal) != 9)){
+      stop("Postal code must be a 5 or 9 digit number")
+    }
+    if (nchar(postal) == 9){
+      newpostal <- sub("(.{5})(.*)", "\\1-\\2", postal)
+      url <- paste0(url, "&by_postal=", newpostal)
+    }
+    if (nchar(postal) == 5){
+      url <- paste0(url, "&by_postal=", postal)
+    }
+  }
+  if ((!is.null(latitude)) & (!is.null(longitude))){
+    if ((!is.numeric(latitude)) | (!is.numeric(longitude))){
+      stop("Latitude and longitude must be numeric values")
+    }
+    url <- paste0(url, "&by_dist=", latitude, ",", longitude)
+  }
+
   df <- fromJSON(rawToChar(GET(url)$content))
   if (length(df) == 0 ){
     message("No results found. Try different parameters")
