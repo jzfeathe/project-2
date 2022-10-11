@@ -21,15 +21,6 @@ The following packages were used to create this document:
 
 ## API Functions
 
-Replace spaces with underscores. Used in name and city functions.
-
-```{r}
-conv_und <- function(x){
-  x <- str_replace_all(x, " ", "_")
-  return(x)
-}
-```
-
 Search breweries by city
 
 ```{r}
@@ -131,7 +122,7 @@ by_state <- function(state, usa = TRUE){
                     WV =  state <- "West_Virginia",
                     WI =  state <- "Wisconsin",
                     WY =  state <- "Wyoming",
-                    stop("USA state must be a 2 character abbreviation or name")
+                    stop("usa state must be a 2 character abbreviation or name")
              )
     }
   }
@@ -227,18 +218,16 @@ Wrapper function
 Default pulls breweries
 
 ```{r}
-get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, name = NULL,
-                        postal = NULL, latitude = NULL, longitude = NULL){
+get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, 
+                        name = NULL, postal = NULL, latitude = NULL, 
+                        longitude = NULL){
   url <- "https://api.openbrewerydb.org/breweries?per_page=50"
-  if (is.null(c(city, state, type, name, postal, latitude, longitude))){
-    url <- "https://api.openbrewerydb.org/breweries?per_page=50"
-  }
-  
+
   if (!is.null(city)){
     if (!is.character(city)){
       stop("city must be a character string")
     }
-    url <- paste0(url, "&by_city=", conv_und(city))
+    url <- paste0(url, "&by_city=", str_replace_all(city, " ", "_"))
   }
   
   if (!is.null(type)){
@@ -251,7 +240,7 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, name
     if (!(type %in% type_list)){
     stop("type must be either micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, or closed")
     }
-    url <- paste0(url, "&by_type=", conv_und(type))
+    url <- paste0(url, "&by_type=", str_replace_all(type, " ", "_"))
   }
   
   if (!is.null(name)){
@@ -321,28 +310,22 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, name
                       WV =  state <- "West_Virginia",
                       WI =  state <- "Wisconsin",
                       WY =  state <- "Wyoming",
-                      stop("USA state must be a 2 character abbreviation or name")
+                      stop("usa state must be a 2 character abbreviation or name")
                )
-        
-    url <- paste0(url, "&by_state=", state)
       }
     }
+    url <- paste0(url, "&by_state=", state)
   }
+  
   if (!is.null(postal)){
-    if (!is.numeric(postal)){
-      stop("Postal code must be a 5 or 9 digit number")
+    if ((!is.character(postal)) | 
+        ((nchar(postal) != 5) & 
+         (nchar(postal) != 10))){
+      stop("Postal code must be a 5 or 10 character string in the form \"12345-6789\" or \"12345\"")
     }
-    if ((nchar(postal) != 5) & (nchar(postal) != 9)){
-      stop("Postal code must be a 5 or 9 digit number")
-    }
-    if (nchar(postal) == 9){
-      newpostal <- sub("(.{5})(.*)", "\\1-\\2", postal)
-      url <- paste0(url, "&by_postal=", newpostal)
-    }
-    if (nchar(postal) == 5){
-      url <- paste0(url, "&by_postal=", postal)
-    }
+    url <- paste0(url, "&by_postal=", postal)
   }
+  
   if ((!is.null(latitude)) & (!is.null(longitude))){
     if ((!is.numeric(latitude)) | (!is.numeric(longitude))){
       stop("Latitude and longitude must be numeric values")
