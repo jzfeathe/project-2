@@ -25,13 +25,11 @@ library(jsonlite)
 
 # Overview
 
-The following packages were used to create this document:  
-
-  * `knitr`: used to document code in R Markdown format  
-  * `httr`: used to connect to the API  
-  * `tidyverse`: used for pipe operators and plotting  
-  * `jsonlite`: used for interacting with JSON in the API  
-
+The purpose of this vignette is to explain how to use a function created for
+interacting with a specific API, as well as demonstrate various types of
+analyses that can be conducted on the data obtained from its use. The [Beer API](https://www.openbrewerydb.org/) is a free API that contains publicly
+available address and contact information for breweries, cideries, brewpubs, and
+bottleshops all over the world.
 
 ## Requirements
 
@@ -44,13 +42,100 @@ The following packages were used to create this document:
 
 # API Function
 
+## General Form
+
 The function we will use to query the API uses one endpoint, or connection point
 between the API and server, at <https://api.openbrewerydb.org/breweries>. Six
 different modifications, each passed as separate arguments of the function, 
 allow the user to filter the returned API data based on any combination of 
 single values of the variables of interest.
 
+The function takes arguments of `city`, `state`, `usa`, which is defaulted to
+`TRUE`, `type`, `name`, `postal`, `latitude`, and `longitude`. Other than `usa`,
+which is boolean, and `latitude` and `longitude`, which are numeric, all
+arguments must be provided as character strings. Note that character strings
+can be provided as partial matches, as well, e.g., `name = "brewery"` will
+return records with brewery anywhere in the name. If no arguments are specified,
+the API call is run as an open query, pulling data from the entire data set. To reduce bandwidth, the results are limited to 20 per call. This function appends 
+"?per_page=50" to the base url, allowing 50 results, which is stored as the new
+url that each modification will append to, and is now the function's default 
+result limit.
 
+The code following the function's setup can be divided into sections
+corresponding to each argument, but they all operate similarly. The argument is 
+first checked with an `if` statement to see if the user supplied a value. If so,
+the logic confirms that the correct data type was used, and then adds the 
+parameter string to the current url string, along with the corresponding value,
+provided by user, potentially modified to match the formatting needed by the
+API. The new url string is then saved as the url to append future parameter
+strings to. After the url has been either modified or left unchanged, the next
+argument is evaluated and the cycle repeats.
+
+After all the arguments have been evaluated, the final url is then sent with a
+GET request via the `GET` function. The content portion of the returned list
+is isolated via `$content` and converted from raw bytes to character data via
+the `rawToChar()` function. The `fromJSON()` function then converts that JSON
+structure into a data frame, which is stored as `df`. If that data frame is
+empty, a message informs the user that there were no results, otherwise, the
+data frame is returned.
+
+## Detailed Explanations
+
+Explanations for each argument section separated by line breaks are as follows:
+
+  1. The first argument section checks if the user provided a city via the
+  `if()` function evaluating condition `!is.null(city)`. If a city was not
+  provided, as is the default argument, the rest of the code portion is skipped.
+  and the next argument is evaluated. If a city was provided, another `if` 
+  statement is evaluated to check that the data type is character via 
+  `!is.character(city)`. If it is not, the function errors and the user is
+  informed to change the input. If it is character, the city parameter string,
+  `"&by_city="` is added to the url, followed by the city name via `paste0()`
+  function. `str_replace_all()` converts all spaces into underscores per url
+  formatting, and the new url is saved. Then, the next argument is evaluated.  
+  2. The `type` argument is evaluated to see if it is present and characters
+  using the same logic as used for `city`. If those checks pass, the string is
+  converted to lower case with `tolower()`. This is done because the allowed
+  values of the modification string are lower case and case-sensitive. A vector
+  of allowed values is saved to `type_list` which is then checked in an `if`
+  statement with the `%in%` infix function to verify that the provided `type`
+  can be used in the url. If not, an error message informs the user. If so,
+  the `type` value is added to the url and modification string of `"&by_type="`,
+  the url is saved, and the next argument is evaluated.  
+  3. The `name` argument is evaluated to see if it is present and characters
+  using the same logic as the previous two arguments. If not, an error is thrown
+  and message sent to the user. If so, the `name` value is added to the url and 
+  modification string of `"&byname="`, the url is saved, and the next argument
+  is evaluated.  
+  4. The `state` argument is evaluated to see if it is present and characters
+  using the same logic from before, and the same outcomes result. If it is
+  present, a secondary argument `usa` is evaluated. If `FALSE`, the `state` name
+  is passed and added to the url string using the same logic as previously
+  outlined but with modification string `"&bystate="`. If `TRUE`(the default), 
+  another conditional statement checks if the number of characters is two, in
+  line with standard two character state abbreviations, via `nchar()`. If not, 
+  the string is passed to the url appending code portion as before. If so, the 
+  state string is converted to upper case via `toupper()` and mapped to the full
+  state name using a `switch()` function. If the value is not in the mapping,
+  an informative error message is provided. The full state name or passed state
+  name is passed to added to the url and modification string of `"bystate="`,
+  the url is saved, and the next argument is evaluated.  
+  5. The `postal` argument is evaluated to see if it is present the same as
+  before. If it is, a condition is checked to see if it is either not in
+  character format or does not have 5 or 10 characters, using an expression with
+  `ischaracter()`, `nchar()`, the `|` function and the `&` function. If the
+  expression is `FALSE`, an informative error prints. If the expression is true,
+  the postal code is added to the url and modification string of `"&bypostal="`,
+  the url is saved, and the next argument is evaluated.  
+  6. The `latitude` and `longitude` arguments are evaluated to see if they are
+  both present using the `&` function and similar logic as before. If not, the
+  final url is passed as an argument to the `GET` function as described in the
+  general form section of this document above. If so, the arguments are checked
+  to confirm they are numeric. If not, an informative error message prints. If
+  so, the values are separated by a comma and pasted to the end of the url,
+  following the modification string of `"&bydist="`. The url string is saved
+  and passed as the final url to the `GET` function.  
+  
 ```{r}
 get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, 
                         name = NULL, postal = NULL, latitude = NULL, 
@@ -72,9 +157,10 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
     type_list <- c("micro", "nano", "regional", "brewpub", "large", "planning",
                     "bar", "contract", "proprietor", "closed")
     if (!(type %in% type_list)){
-    stop("type must be either micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, or closed")
+    stop("type must be either micro, nano, regional, brewpub, large, planning, 
+         bar, contract, proprietor, or closed")
     }
-    url <- paste0(url, "&by_type=", str_replace_all(type, " ", "_"))
+    url <- paste0(url, "&by_type=", type)
   }
   
   if (!is.null(name)){
@@ -92,59 +178,60 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
       if (nchar(state) == 2){
         state <- toupper(state)
         switch(state,
-                      AL =  state <- "Alabama",
-                      AK =  state <- "Alaska",
-                      AZ =  state <- "Arizona",
-                      AR =  state <- "Arkansas",
-                      CA =  state <- "California",
-                      CO =  state <- "Colorado",
-                      CT =  state <- "Connecticut",
-                      DE =  state <- "Delaware",
-                      DC =  state <- "District_of_Columbia",
-                      FL =  state <- "Florida",
-                      GA =  state <- "Georgia",
-                      HI =  state <- "Hawaii",
-                      ID =  state <- "Idaho",
-                      IL =  state <- "Illinois",
-                      IN =  state <- "Indiana",
-                      IA =  state <- "Iowa",
-                      KS =  state <- "Kansas",
-                      KY =  state <- "Kentucky",
-                      LA =  state <- "Louisiana",
-                      ME =  state <- "Maine",
-                      MD =  state <- "Maryland",
-                      MA =  state <- "Massachusetts",
-                      MI =  state <- "Michigan",
-                      MN =  state <- "Minnesota",
-                      MS =  state <- "Mississippi",
-                      MO =  state <- "Missouri",
-                      MT =  state <- "Montana",
-                      NE =  state <- "Nebraska",
-                      NV =  state <- "Nevada",
-                      NH =  state <- "New_Hampshire",
-                      NJ =  state <- "New_Jersey",
-                      NM =  state <- "New_Mexico",
-                      NY =  state <- "New_York",
-                      NC =  state <- "North_Carolina",
-                      ND =  state <- "North_Dakota",
-                      OH =  state <- "Ohio",
-                      OK =  state <- "Oklahoma",
-                      OR =  state <- "Oregon",
-                      PA =  state <- "Pennsylvania",
-                      PR =  state <- "Puerto_Rico",
-                      RI =  state <- "Rhode_Island",
-                      SC =  state <- "South_Carolina",
-                      SD =  state <- "South_Dakota",
-                      TN =  state <- "Tennessee",
-                      TX =  state <- "Texas",
-                      UT =  state <- "Utah",
-                      VT =  state <- "Vermont",
-                      VA =  state <- "Virginia",
-                      WA =  state <- "Washington",
-                      WV =  state <- "West_Virginia",
-                      WI =  state <- "Wisconsin",
-                      WY =  state <- "Wyoming",
-                      stop("usa state must be a 2 character abbreviation or name")
+                      AL = state <- "Alabama",
+                      AK = state <- "Alaska",
+                      AZ = state <- "Arizona",
+                      AR = state <- "Arkansas",
+                      CA = state <- "California",
+                      CO = state <- "Colorado",
+                      CT = state <- "Connecticut",
+                      DE = state <- "Delaware",
+                      DC = state <- "District_of_Columbia",
+                      FL = state <- "Florida",
+                      GA = state <- "Georgia",
+                      HI = state <- "Hawaii",
+                      ID = state <- "Idaho",
+                      IL = state <- "Illinois",
+                      IN = state <- "Indiana",
+                      IA = state <- "Iowa",
+                      KS = state <- "Kansas",
+                      KY = state <- "Kentucky",
+                      LA = state <- "Louisiana",
+                      ME = state <- "Maine",
+                      MD = state <- "Maryland",
+                      MA = state <- "Massachusetts",
+                      MI = state <- "Michigan",
+                      MN = state <- "Minnesota",
+                      MS = state <- "Mississippi",
+                      MO = state <- "Missouri",
+                      MT = state <- "Montana",
+                      NE = state <- "Nebraska",
+                      NV = state <- "Nevada",
+                      NH = state <- "New_Hampshire",
+                      NJ = state <- "New_Jersey",
+                      NM = state <- "New_Mexico",
+                      NY = state <- "New_York",
+                      NC = state <- "North_Carolina",
+                      ND = state <- "North_Dakota",
+                      OH = state <- "Ohio",
+                      OK = state <- "Oklahoma",
+                      OR = state <- "Oregon",
+                      PA = state <- "Pennsylvania",
+                      PR = state <- "Puerto_Rico",
+                      RI = state <- "Rhode_Island",
+                      SC = state <- "South_Carolina",
+                      SD = state <- "South_Dakota",
+                      TN = state <- "Tennessee",
+                      TX = state <- "Texas",
+                      UT = state <- "Utah",
+                      VT = state <- "Vermont",
+                      VA = state <- "Virginia",
+                      WA = state <- "Washington",
+                      WV = state <- "West_Virginia",
+                      WI = state <- "Wisconsin",
+                      WY = state <- "Wyoming",
+                      stop("usa state must be a 2 character abbreviation 
+                           or name")
                )
       }
     }
@@ -155,7 +242,8 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
     if ((!is.character(postal)) | 
         ((nchar(postal) != 5) & 
          (nchar(postal) != 10))){
-      stop("Postal code must be a 5 or 10 character string in the form \"12345-6789\" or \"12345\"")
+      stop("Postal code must be a 5 or 10 character string in the 
+           form \"12345-6789\" or \"12345\"")
     }
     url <- paste0(url, "&by_postal=", postal)
   }
@@ -176,6 +264,7 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
   }
 }
 ```
+
 # Exploratory Data Analysis  
 
 Now that we can access the endpoint with up to six different modifications, we can get some data
