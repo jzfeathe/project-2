@@ -4,6 +4,9 @@ author: "Justin Feathers & Luke Perkins"
 date: "2022-10-08"
 ---
 
+This document is a vignette to explain how to get data from the Open Brewery API using
+calls and modifications.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
 library(httr)
@@ -13,15 +16,20 @@ library(jsonlite)
 
 # Requirements
 
-The following packages were used to create this document:
-  + `knitr`: used to document code in R Markdown format
-  + `httr`: used to connect to the API
-  + `tidyverse`: used for pipe operators and plotting
-  + `jsonlite`: used for interacting with JSON in the API
+The following packages were used to create this document:  
+
+  * `knitr`: used to document code in R Markdown format  
+  * `httr`: used to connect to the API  
+  * `tidyverse`: used for pipe operators and plotting  
+  * `jsonlite`: used for interacting with JSON in the API  
 
 # API Function
 
-Default pulls breweries
+Here, we created the function needed to pull a list of breweries from main Open
+Brewery API. The "List Breweries" endpoint was the only one we found to be particularly
+useful, especially if you're interested in modifications. As such, we felt it 
+necessary to create a single function with a section for each modification that can
+be used in any desired combination to get to the endpoint.
 
 ```{r}
 get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, 
@@ -148,7 +156,7 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
   }
 }
 ```
-#Exploratory Data Analysis
+# Exploratory Data Analysis
 Now that we can access the endpoint with up to six different modifications, we can get some data
 to analyze. Let's start by grabbing some data without any modifications using `get_brewery()`
 ```{r}
@@ -213,16 +221,22 @@ frequency that breweries were that corresponding distance from the mean.
 
 ```{r}
 g <- ggplot(usDist, aes(x = distFromMean))
-g + geom_histogram() 
+g + geom_histogram(color = 4, fill = "white") +
+  labs(title = "Distance of Brewery from Mean", x = "Distance", y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
+
 Here is the histogram without the brewery from Ireland. Again, it looks nearly
 normally-distributed. This indicates that it is nearly representative of the population.
-As the above histogram, the x-axis is the distance from the mean and the y-axis consists
-of the corresponding frequencies of breweries' distances from the mean.
+Still, it is important to note that we couldn't make assumptions about the population
+with this data. As the above histogram, the x-axis is the distance from the mean and 
+the y-axis consists of the corresponding frequencies of breweries' distances from the mean.
 
 ```{r}
 g <- ggplot(na.omit(usDist), aes(x = distFromMean))
-g + geom_histogram()
+g + geom_histogram(color = 4, fill = "white", bins = 10) +
+  labs(title = "Distance of Brewery from Mean", x = "Distance", y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 
