@@ -3,193 +3,500 @@ Project 2
 Justin Feathers & Luke Perkins
 2022-10-08
 
--   <a href="#1-heading" id="toc-1-heading">1 Heading</a>
-    -   <a href="#11-heading-2" id="toc-11-heading-2">1.1 Heading 2</a>
+-   <a href="#overview" id="toc-overview">1 Overview</a>
+    -   <a href="#requirements" id="toc-requirements">1.1 Requirements</a>
+-   <a href="#api-function" id="toc-api-function">2 API Function</a>
+-   <a href="#exploratory-data-analysis"
+    id="toc-exploratory-data-analysis">3 Exploratory Data Analysis</a>
 
-# 1 Heading
+The purpose of this vignette is to explain how to use a function created
+for interacting with a specific API, as well as demonstrate various
+types of analyses that can be conducted on the data obtained from its
+use. The [Beer API](https://www.openbrewerydb.org/) is a free API that
+contains publicly available address and contact information for
+breweries, cideries, brewpubs, and bottleshops all over the world.
+
+# 1 Overview
+
+The following packages were used to create this document:
+
+-   `knitr`: used to document code in R Markdown format  
+-   `httr`: used to connect to the API  
+-   `tidyverse`: used for pipe operators and plotting  
+-   `jsonlite`: used for interacting with JSON in the API
+
+## 1.1 Requirements
+
+The following packages were used to create this document:
+
+-   `knitr`: used to document code in R Markdown format  
+-   `httr`: used to connect to the API  
+-   `tidyverse`: used for pipe operators and plotting  
+-   `jsonlite`: used for interacting with JSON in the API
+
+# 2 API Function
+
+The function we will use to query the API uses one endpoint, or
+connection point between the API and server, at
+<https://api.openbrewerydb.org/breweries>. Six different modifications,
+each passed as separate arguments of the function, allow the user to
+filter the returned API data based on any combination of single values
+of the variables of interest.
 
 ``` r
-library(tidyverse)
-print("Hello")
+get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, 
+                        name = NULL, postal = NULL, latitude = NULL, 
+                        longitude = NULL){
+  url <- "https://api.openbrewerydb.org/breweries?per_page=50"
+
+  if (!is.null(city)){
+    if (!is.character(city)){
+      stop("city must be a character string")
+    }
+    url <- paste0(url, "&by_city=", str_replace_all(city, " ", "_"))
+  }
+  
+  if (!is.null(type)){
+    if (!is.character(type)){
+      stop("type must be a character string")
+    }
+    type <- tolower(type)
+    type_list <- c("micro", "nano", "regional", "brewpub", "large", "planning",
+                    "bar", "contract", "proprietor", "closed")
+    if (!(type %in% type_list)){
+    stop("type must be either micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, or closed")
+    }
+    url <- paste0(url, "&by_type=", str_replace_all(type, " ", "_"))
+  }
+  
+  if (!is.null(name)){
+    if (!is.character(name)){
+      stop("brewery must be a character string")
+    }
+    url <- paste0(url, "&by_name=", name)
+  }
+  
+  if(!is.null(state)){
+    if (!is.character(state)){
+      stop("state must be a character string")
+    }
+    if (usa){
+      if (nchar(state) == 2){
+        state <- toupper(state)
+        switch(state,
+                      AL =  state <- "Alabama",
+                      AK =  state <- "Alaska",
+                      AZ =  state <- "Arizona",
+                      AR =  state <- "Arkansas",
+                      CA =  state <- "California",
+                      CO =  state <- "Colorado",
+                      CT =  state <- "Connecticut",
+                      DE =  state <- "Delaware",
+                      DC =  state <- "District_of_Columbia",
+                      FL =  state <- "Florida",
+                      GA =  state <- "Georgia",
+                      HI =  state <- "Hawaii",
+                      ID =  state <- "Idaho",
+                      IL =  state <- "Illinois",
+                      IN =  state <- "Indiana",
+                      IA =  state <- "Iowa",
+                      KS =  state <- "Kansas",
+                      KY =  state <- "Kentucky",
+                      LA =  state <- "Louisiana",
+                      ME =  state <- "Maine",
+                      MD =  state <- "Maryland",
+                      MA =  state <- "Massachusetts",
+                      MI =  state <- "Michigan",
+                      MN =  state <- "Minnesota",
+                      MS =  state <- "Mississippi",
+                      MO =  state <- "Missouri",
+                      MT =  state <- "Montana",
+                      NE =  state <- "Nebraska",
+                      NV =  state <- "Nevada",
+                      NH =  state <- "New_Hampshire",
+                      NJ =  state <- "New_Jersey",
+                      NM =  state <- "New_Mexico",
+                      NY =  state <- "New_York",
+                      NC =  state <- "North_Carolina",
+                      ND =  state <- "North_Dakota",
+                      OH =  state <- "Ohio",
+                      OK =  state <- "Oklahoma",
+                      OR =  state <- "Oregon",
+                      PA =  state <- "Pennsylvania",
+                      PR =  state <- "Puerto_Rico",
+                      RI =  state <- "Rhode_Island",
+                      SC =  state <- "South_Carolina",
+                      SD =  state <- "South_Dakota",
+                      TN =  state <- "Tennessee",
+                      TX =  state <- "Texas",
+                      UT =  state <- "Utah",
+                      VT =  state <- "Vermont",
+                      VA =  state <- "Virginia",
+                      WA =  state <- "Washington",
+                      WV =  state <- "West_Virginia",
+                      WI =  state <- "Wisconsin",
+                      WY =  state <- "Wyoming",
+                      stop("usa state must be a 2 character abbreviation or name")
+               )
+      }
+    }
+    url <- paste0(url, "&by_state=", state)
+  }
+  
+  if (!is.null(postal)){
+    if ((!is.character(postal)) | 
+        ((nchar(postal) != 5) & 
+         (nchar(postal) != 10))){
+      stop("Postal code must be a 5 or 10 character string in the form \"12345-6789\" or \"12345\"")
+    }
+    url <- paste0(url, "&by_postal=", postal)
+  }
+  
+  if ((!is.null(latitude)) & (!is.null(longitude))){
+    if ((!is.numeric(latitude)) | (!is.numeric(longitude))){
+      stop("Latitude and longitude must be numeric values")
+    }
+    url <- paste0(url, "&by_dist=", latitude, ",", longitude)
+  }
+
+  df <- fromJSON(rawToChar(GET(url)$content))
+  if (length(df) == 0 ){
+    message("No results found. Try different parameters")
+  }
+  else {
+    return(df)
+  }
+}
 ```
 
-    ## [1] "Hello"
+# 3 Exploratory Data Analysis
+
+Now that we can access the endpoint with up to six different
+modifications, we can get some data to analyze. Let’s start by grabbing
+some data without any modifications using `get_brewery()`
 
 ``` r
-iris
+noMod <- get_brewery()
 ```
 
-    ## # A tibble: 150 × 5
-    ##    Sepal.Length Sepal.Width Petal.Length Petal.Width Species
-    ##           <dbl>       <dbl>        <dbl>       <dbl> <fct>  
-    ##  1          5.1         3.5          1.4         0.2 setosa 
-    ##  2          4.9         3            1.4         0.2 setosa 
-    ##  3          4.7         3.2          1.3         0.2 setosa 
-    ##  4          4.6         3.1          1.5         0.2 setosa 
-    ##  5          5           3.6          1.4         0.2 setosa 
-    ##  6          5.4         3.9          1.7         0.4 setosa 
-    ##  7          4.6         3.4          1.4         0.3 setosa 
-    ##  8          5           3.4          1.5         0.2 setosa 
-    ##  9          4.4         2.9          1.4         0.2 setosa 
-    ## 10          4.9         3.1          1.5         0.1 setosa 
-    ## # … with 140 more rows
+Given that most of the results are from the U.S., it seems reasonable to
+assume we should land somewhere in Kansas (the center of the U.S.) using
+the means of the latitudes and longitudes if the results from the call
+are representative – that is, they are unbiased and evenly spread.
 
 ``` r
-print(iris)
+usDist <- noMod %>%
+  select(name, city, state, latitude, longitude) %>%
+  mutate(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
+         meanLong = mean(as.numeric(longitude), na.rm = TRUE),
+         distFromMean = sqrt(((as.numeric(latitude) - meanLat)^2) +
+           ((as.numeric(longitude)- meanLong)^2)))
+usDist
 ```
 
-    ##     Sepal.Length Sepal.Width Petal.Length Petal.Width    Species
-    ## 1            5.1         3.5          1.4         0.2     setosa
-    ## 2            4.9         3.0          1.4         0.2     setosa
-    ## 3            4.7         3.2          1.3         0.2     setosa
-    ## 4            4.6         3.1          1.5         0.2     setosa
-    ## 5            5.0         3.6          1.4         0.2     setosa
-    ## 6            5.4         3.9          1.7         0.4     setosa
-    ## 7            4.6         3.4          1.4         0.3     setosa
-    ## 8            5.0         3.4          1.5         0.2     setosa
-    ## 9            4.4         2.9          1.4         0.2     setosa
-    ## 10           4.9         3.1          1.5         0.1     setosa
-    ## 11           5.4         3.7          1.5         0.2     setosa
-    ## 12           4.8         3.4          1.6         0.2     setosa
-    ## 13           4.8         3.0          1.4         0.1     setosa
-    ## 14           4.3         3.0          1.1         0.1     setosa
-    ## 15           5.8         4.0          1.2         0.2     setosa
-    ## 16           5.7         4.4          1.5         0.4     setosa
-    ## 17           5.4         3.9          1.3         0.4     setosa
-    ## 18           5.1         3.5          1.4         0.3     setosa
-    ## 19           5.7         3.8          1.7         0.3     setosa
-    ## 20           5.1         3.8          1.5         0.3     setosa
-    ## 21           5.4         3.4          1.7         0.2     setosa
-    ## 22           5.1         3.7          1.5         0.4     setosa
-    ## 23           4.6         3.6          1.0         0.2     setosa
-    ## 24           5.1         3.3          1.7         0.5     setosa
-    ## 25           4.8         3.4          1.9         0.2     setosa
-    ## 26           5.0         3.0          1.6         0.2     setosa
-    ## 27           5.0         3.4          1.6         0.4     setosa
-    ## 28           5.2         3.5          1.5         0.2     setosa
-    ## 29           5.2         3.4          1.4         0.2     setosa
-    ## 30           4.7         3.2          1.6         0.2     setosa
-    ## 31           4.8         3.1          1.6         0.2     setosa
-    ## 32           5.4         3.4          1.5         0.4     setosa
-    ## 33           5.2         4.1          1.5         0.1     setosa
-    ## 34           5.5         4.2          1.4         0.2     setosa
-    ## 35           4.9         3.1          1.5         0.2     setosa
-    ## 36           5.0         3.2          1.2         0.2     setosa
-    ## 37           5.5         3.5          1.3         0.2     setosa
-    ## 38           4.9         3.6          1.4         0.1     setosa
-    ## 39           4.4         3.0          1.3         0.2     setosa
-    ## 40           5.1         3.4          1.5         0.2     setosa
-    ## 41           5.0         3.5          1.3         0.3     setosa
-    ## 42           4.5         2.3          1.3         0.3     setosa
-    ## 43           4.4         3.2          1.3         0.2     setosa
-    ## 44           5.0         3.5          1.6         0.6     setosa
-    ## 45           5.1         3.8          1.9         0.4     setosa
-    ## 46           4.8         3.0          1.4         0.3     setosa
-    ## 47           5.1         3.8          1.6         0.2     setosa
-    ## 48           4.6         3.2          1.4         0.2     setosa
-    ## 49           5.3         3.7          1.5         0.2     setosa
-    ## 50           5.0         3.3          1.4         0.2     setosa
-    ## 51           7.0         3.2          4.7         1.4 versicolor
-    ## 52           6.4         3.2          4.5         1.5 versicolor
-    ## 53           6.9         3.1          4.9         1.5 versicolor
-    ## 54           5.5         2.3          4.0         1.3 versicolor
-    ## 55           6.5         2.8          4.6         1.5 versicolor
-    ## 56           5.7         2.8          4.5         1.3 versicolor
-    ## 57           6.3         3.3          4.7         1.6 versicolor
-    ## 58           4.9         2.4          3.3         1.0 versicolor
-    ## 59           6.6         2.9          4.6         1.3 versicolor
-    ## 60           5.2         2.7          3.9         1.4 versicolor
-    ## 61           5.0         2.0          3.5         1.0 versicolor
-    ## 62           5.9         3.0          4.2         1.5 versicolor
-    ## 63           6.0         2.2          4.0         1.0 versicolor
-    ## 64           6.1         2.9          4.7         1.4 versicolor
-    ## 65           5.6         2.9          3.6         1.3 versicolor
-    ## 66           6.7         3.1          4.4         1.4 versicolor
-    ## 67           5.6         3.0          4.5         1.5 versicolor
-    ## 68           5.8         2.7          4.1         1.0 versicolor
-    ## 69           6.2         2.2          4.5         1.5 versicolor
-    ## 70           5.6         2.5          3.9         1.1 versicolor
-    ## 71           5.9         3.2          4.8         1.8 versicolor
-    ## 72           6.1         2.8          4.0         1.3 versicolor
-    ## 73           6.3         2.5          4.9         1.5 versicolor
-    ## 74           6.1         2.8          4.7         1.2 versicolor
-    ## 75           6.4         2.9          4.3         1.3 versicolor
-    ## 76           6.6         3.0          4.4         1.4 versicolor
-    ## 77           6.8         2.8          4.8         1.4 versicolor
-    ## 78           6.7         3.0          5.0         1.7 versicolor
-    ## 79           6.0         2.9          4.5         1.5 versicolor
-    ## 80           5.7         2.6          3.5         1.0 versicolor
-    ## 81           5.5         2.4          3.8         1.1 versicolor
-    ## 82           5.5         2.4          3.7         1.0 versicolor
-    ## 83           5.8         2.7          3.9         1.2 versicolor
-    ## 84           6.0         2.7          5.1         1.6 versicolor
-    ## 85           5.4         3.0          4.5         1.5 versicolor
-    ## 86           6.0         3.4          4.5         1.6 versicolor
-    ## 87           6.7         3.1          4.7         1.5 versicolor
-    ## 88           6.3         2.3          4.4         1.3 versicolor
-    ## 89           5.6         3.0          4.1         1.3 versicolor
-    ## 90           5.5         2.5          4.0         1.3 versicolor
-    ## 91           5.5         2.6          4.4         1.2 versicolor
-    ## 92           6.1         3.0          4.6         1.4 versicolor
-    ## 93           5.8         2.6          4.0         1.2 versicolor
-    ## 94           5.0         2.3          3.3         1.0 versicolor
-    ## 95           5.6         2.7          4.2         1.3 versicolor
-    ## 96           5.7         3.0          4.2         1.2 versicolor
-    ## 97           5.7         2.9          4.2         1.3 versicolor
-    ## 98           6.2         2.9          4.3         1.3 versicolor
-    ## 99           5.1         2.5          3.0         1.1 versicolor
-    ## 100          5.7         2.8          4.1         1.3 versicolor
-    ## 101          6.3         3.3          6.0         2.5  virginica
-    ## 102          5.8         2.7          5.1         1.9  virginica
-    ## 103          7.1         3.0          5.9         2.1  virginica
-    ## 104          6.3         2.9          5.6         1.8  virginica
-    ## 105          6.5         3.0          5.8         2.2  virginica
-    ## 106          7.6         3.0          6.6         2.1  virginica
-    ## 107          4.9         2.5          4.5         1.7  virginica
-    ## 108          7.3         2.9          6.3         1.8  virginica
-    ## 109          6.7         2.5          5.8         1.8  virginica
-    ## 110          7.2         3.6          6.1         2.5  virginica
-    ## 111          6.5         3.2          5.1         2.0  virginica
-    ## 112          6.4         2.7          5.3         1.9  virginica
-    ## 113          6.8         3.0          5.5         2.1  virginica
-    ## 114          5.7         2.5          5.0         2.0  virginica
-    ## 115          5.8         2.8          5.1         2.4  virginica
-    ## 116          6.4         3.2          5.3         2.3  virginica
-    ## 117          6.5         3.0          5.5         1.8  virginica
-    ## 118          7.7         3.8          6.7         2.2  virginica
-    ## 119          7.7         2.6          6.9         2.3  virginica
-    ## 120          6.0         2.2          5.0         1.5  virginica
-    ## 121          6.9         3.2          5.7         2.3  virginica
-    ## 122          5.6         2.8          4.9         2.0  virginica
-    ## 123          7.7         2.8          6.7         2.0  virginica
-    ## 124          6.3         2.7          4.9         1.8  virginica
-    ## 125          6.7         3.3          5.7         2.1  virginica
-    ## 126          7.2         3.2          6.0         1.8  virginica
-    ## 127          6.2         2.8          4.8         1.8  virginica
-    ## 128          6.1         3.0          4.9         1.8  virginica
-    ## 129          6.4         2.8          5.6         2.1  virginica
-    ## 130          7.2         3.0          5.8         1.6  virginica
-    ## 131          7.4         2.8          6.1         1.9  virginica
-    ## 132          7.9         3.8          6.4         2.0  virginica
-    ## 133          6.4         2.8          5.6         2.2  virginica
-    ## 134          6.3         2.8          5.1         1.5  virginica
-    ## 135          6.1         2.6          5.6         1.4  virginica
-    ## 136          7.7         3.0          6.1         2.3  virginica
-    ## 137          6.3         3.4          5.6         2.4  virginica
-    ## 138          6.4         3.1          5.5         1.8  virginica
-    ## 139          6.0         3.0          4.8         1.8  virginica
-    ## 140          6.9         3.1          5.4         2.1  virginica
-    ## 141          6.7         3.1          5.6         2.4  virginica
-    ## 142          6.9         3.1          5.1         2.3  virginica
-    ## 143          5.8         2.7          5.1         1.9  virginica
-    ## 144          6.8         3.2          5.9         2.3  virginica
-    ## 145          6.7         3.3          5.7         2.5  virginica
-    ## 146          6.7         3.0          5.2         2.3  virginica
-    ## 147          6.3         2.5          5.0         1.9  virginica
-    ## 148          6.5         3.0          5.2         2.0  virginica
-    ## 149          6.2         3.4          5.4         2.3  virginica
-    ## 150          5.9         3.0          5.1         1.8  virginica
+    ## # A tibble: 50 x 8
+    ##    name                            city      state      latitude           longitude           meanLat meanLong distFromMean
+    ##    <chr>                           <chr>     <chr>      <chr>              <chr>                 <dbl>    <dbl>        <dbl>
+    ##  1 10-56 Brewing Company           Knox      Indiana    41.289715          -86.627954             41.0    -100.        13.8 
+    ##  2 10 Barrel Brewing Co            Bend      Oregon     44.08683530625218  -121.28170597038259    41.0    -100.        21.1 
+    ##  3 10 Barrel Brewing Co            Bend      Oregon     44.057564901366796 -121.32880209261799    41.0    -100.        21.1 
+    ##  4 10 Barrel Brewing Co - Bend Pub Bend      Oregon     44.0912109         -121.2809536           41.0    -100.        21.1 
+    ##  5 10 Barrel Brewing Co - Boise    Boise     Idaho      43.618516          -116.202929            41.0    -100.        16.0 
+    ##  6 10 Barrel Brewing Co - Denver   Denver    Colorado   39.7592508         -104.9853655           41.0    -100.         4.69
+    ##  7 10 Barrel Brewing Co            Portland  Oregon     45.5259786         -122.6855056           41.0    -100.        22.7 
+    ##  8 10 Barrel Brewing Co            San Diego California 32.714813          -117.129593            41.0    -100.        18.6 
+    ##  9 10 Torr Distilling and Brewing  Reno      Nevada     39.5171702         -119.7732015           41.0    -100.        19.4 
+    ## 10 101 Brewery                     Quilcene  Washington 47.823475773720666 -122.87558226136872    41.0    -100.        23.4 
+    ## # ... with 40 more rows
 
-## 1.1 Heading 2
+How did we do? We can do another call using
+`get_brewery(state = "kansas")` to check. We can compare `meanLat` and
+`meanLong` with the latitude and longitude values from breweries located
+in Kansas.
 
-Test
+``` r
+get_brewery(state = "kansas") %>%
+  select(latitude, longitude)
+```
+
+    ## # A tibble: 50 x 2
+    ##    latitude    longitude   
+    ##    <chr>       <chr>       
+    ##  1 38.9429674  -95.28093353
+    ##  2 37.68455054 -97.35071131
+    ##  3 36.1297079  -94.1372796 
+    ##  4 37.69517328 -97.44431468
+    ##  5 38.639049   -98.667933  
+    ##  6 36.3168272  -94.1178372 
+    ##  7 36.364069   -94.200584  
+    ##  8 <NA>        <NA>        
+    ##  9 39.0002602  -95.6846745 
+    ## 10 34.73235496 -92.25366807
+    ## # ... with 40 more rows
+
+We were close, but not quite what we were hoping for. Some knowledge of
+geography lets us know we are just slightly north into the bordering
+state of Nebraska. But, we can also perform another call using
+`get_brewery(state = "nebraska")` to verify.
+
+``` r
+get_brewery(state = "nebraska") %>%
+  select(latitude, longitude)
+```
+
+    ## # A tibble: 50 x 2
+    ##    latitude    longitude   
+    ##    <chr>       <chr>       
+    ##  1 <NA>        <NA>        
+    ##  2 <NA>        <NA>        
+    ##  3 41.28489756 -96.00634511
+    ##  4 40.77999602 -96.70701376
+    ##  5 <NA>        <NA>        
+    ##  6 42.87204733 -100.5457277
+    ##  7 <NA>        <NA>        
+    ##  8 40.90629564 -97.09777551
+    ##  9 <NA>        <NA>        
+    ## 10 41.25449082 -95.93090524
+    ## # ... with 40 more rows
+
+We can see that these values more closely align with the means we found.
+So what happened? If we look back at `usDist`, we can see one glaring
+outlier from Killeshin, Ireland. Let’s remove that and see if our
+results are better.
+
+``` r
+noMod %>%
+  select(name, city, state, latitude, longitude) %>%
+  filter(city != "Killeshin") %>%
+  mutate(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
+         meanLong = mean(as.numeric(longitude), na.rm = TRUE),
+         distFromMean = sqrt(((as.numeric(latitude) - meanLat)^2) +
+           ((as.numeric(longitude)- meanLong)^2))) %>%
+  arrange(state)
+```
+
+    ## # A tibble: 49 x 8
+    ##    name                                          city             state     latitude longitude meanLat meanLong distFromMean
+    ##    <chr>                                         <chr>            <chr>     <chr>    <chr>       <dbl>    <dbl>        <dbl>
+    ##  1 12 West Brewing Company                       Gilbert          Arizona   <NA>     <NA>         40.7    -103.        NA   
+    ##  2 12 West Brewing Company - Production Facility Mesa             Arizona   33.4361~ -111.586~    40.7    -103.        11.3 
+    ##  3 1912 Brewing                                  Tucson           Arizona   32.2467~ -110.992~    40.7    -103.        11.7 
+    ##  4 10 Barrel Brewing Co                          San Diego        Californ~ 32.7148~ -117.129~    40.7    -103.        16.3 
+    ##  5 101 North Brewing Company                     Petaluma         Californ~ 38.2702~ -122.665~    40.7    -103.        19.9 
+    ##  6 14 Cannons Brewing Company                    Westlake Village Californ~ 34.15334 -118.802~    40.7    -103.        17.2 
+    ##  7 1850 Brewing Company                          Mariposa         Californ~ 37.5701~ -119.903~    40.7    -103.        17.3 
+    ##  8 10 Barrel Brewing Co - Denver                 Denver           Colorado  39.7592~ -104.985~    40.7    -103.         2.26
+    ##  9 105 West Brewing Co                           Castle Rock      Colorado  39.3826~ -104.866~    40.7    -103.         2.34
+    ## 10 12Degree Brewing                              Louisville       Colorado  39.9782~ -105.131~    40.7    -103.         2.32
+    ## # ... with 39 more rows
+
+Now we are a bit further away than expected, so it appears that although
+close, this data is not quite representative or unbiased. Visual
+inspection of the tibble shows us that 6 results are from Oregon, with
+California and Colorado having 4 each; it seems reasonable to assume
+this is why our means are northwest of where we expected.
+
+A visual representation can help solidify our findings. We can use a
+histogram for this. Here is a histogram including the brewery from
+Ireland. Though clearly skewed right here, it looks like it could be
+considered nearly normally-distributed without the outlier. The x-axis
+shows us the distance from the mean and each bar’s height represents the
+frequency that breweries were that corresponding distance from the mean.
+
+``` r
+g <- ggplot(usDist, aes(x = distFromMean))
+g + geom_histogram(color = 4, fill = "white") +
+  labs(title = "Distance of Brewery from Mean", x = "Distance", y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-58-1.png)<!-- -->
+
+Here is the histogram without the brewery from Ireland. Again, it looks
+nearly normally-distributed. This indicates that it is nearly
+representative of the population. Still, it is important to note that we
+couldn’t make assumptions about the population with this data. As the
+above histogram, the x-axis is the distance from the mean and the y-axis
+consists of the corresponding frequencies of breweries’ distances from
+the mean.
+
+``` r
+g <- ggplot(na.omit(usDist), aes(x = distFromMean))
+g + geom_histogram(color = 4, fill = "white", bins = 10) +
+  labs(title = "Distance of Brewery from Mean", x = "Distance", y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
+
+Next, let’s look at some more specific data by calling the function
+`get_brewery(state = "ny")` to get brewery data for the state of New
+York.
+
+``` r
+#Get brewery data for NY
+ny <- get_brewery(state = "ny")
+```
+
+We want to see if there are any patterns by type of brewery. To do this,
+we will investigate latitude and longitude values across brewery types.
+Additionally, we may want to look at the means of each type to see if
+they have significant variance.
+
+``` r
+nyDist <- ny %>% 
+  select(name, brewery_type, latitude, longitude) %>%
+  group_by(brewery_type) %>%
+  mutate(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
+         meanLong = mean(as.numeric(longitude), na.rm = TRUE)) %>%
+  arrange(meanLat)
+nyDist
+```
+
+    ## # A tibble: 50 x 6
+    ##    name                                    brewery_type latitude    longitude    meanLat meanLong
+    ##    <chr>                                   <chr>        <chr>       <chr>          <dbl>    <dbl>
+    ##  1 Anheuser-Busch Inc Ã¢Â€Â“ Baldwinsville large        43.16510925 -76.31159343    41.6    -74.1
+    ##  2 Blue Point Brewing Co                   large        40.75913445 -73.0216063     41.6    -74.1
+    ##  3 Blue Point Brewing                      large        40.76644215 -73.02103705    41.6    -74.1
+    ##  4 12 Gates Brewing Company                brewpub      <NA>        <NA>            42.5    -74.9
+    ##  5 16 Stone Brewpub                        brewpub      43.24211175 -75.2565195     42.5    -74.9
+    ##  6 2 Way Brewing Company                   brewpub      41.5082102  -73.9809868     42.5    -74.9
+    ##  7 42 North Brewing Company                brewpub      42.769311   -78.607989      42.5    -74.9
+    ##  8 6 Degrees of Separation                 brewpub      41.15866213 -73.86768188    42.5    -74.9
+    ##  9 Alewife Brewing Company                 brewpub      40.74232214 -73.95625257    42.5    -74.9
+    ## 10 Amber Lantern Brewing Company           brewpub      42.7408423  -78.132363      42.5    -74.9
+    ## # ... with 40 more rows
+
+Now that we have the data, let’s create a scatter plot to look for
+obvious patterns.
+
+``` r
+g <- ggplot(na.omit(nyDist), aes(x = longitude, y = latitude))
+g + geom_point(aes(color = brewery_type)) +
+    labs(color = "Brewery Type", x = "Longitude", y = "Latitude") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+    labs(title = "NY Breweries by Type", hjust = 0.5) +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-62-1.png)<!-- -->
+
+There doesn’t appear to be any sort of obvious pattern that would
+suggest a preference of location to build a brewery, but there are
+clusters or groups of breweries by type. We believe this suggests the
+influence of competition.
+
+``` r
+nyDist %>%
+  summarize(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
+            meanLong = mean(as.numeric(longitude), na.rm = TRUE),
+            sdLat = sd(latitude, na.rm = TRUE), sdLong = sd(longitude, na.rm = TRUE))
+```
+
+    ## # A tibble: 6 x 5
+    ##   brewery_type meanLat meanLong sdLat sdLong
+    ##   <chr>          <dbl>    <dbl> <dbl>  <dbl>
+    ## 1 brewpub         42.5    -74.9  1.40   1.79
+    ## 2 contract       NaN      NaN   NA     NA   
+    ## 3 large           41.6    -74.1  1.39   1.90
+    ## 4 micro           42.7    -75.3  1.06   2.08
+    ## 5 planning       NaN      NaN   NA     NA   
+    ## 6 proprietor      43.8    -75.5 NA     NA
+
+Derive Region variable from state, make contingency tables, create bar
+graph.
+
+``` r
+brew <- get_brewery()
+
+brew_reg <- brew %>%
+  mutate(Region = 
+    if_else(brew$state %in%
+    c("Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", 
+      "Vermont", "New Jersey", "New York", "Pennsylvania"),
+    "Northeast",
+    if_else(brew$state %in%
+    c("Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin", "Iowa", "Kansas", 
+      "Minnesota", "Missouri", "Nebraska", "North Dakota", "South Dakota"),
+    "Midwest",
+    if_else(brew$state %in%
+    c("Delaware", "Florida", "Georgia", "Maryland", "North Carolina",
+      "South Carolina", "Virginia", "Washington D.C.", "West Virginia", 
+      "Alabama", "Kentucky", "Mississippi", "Tennessee", "Arkansas",
+      "Louisiana", "Oklahoma", "Texas"),
+    "South",
+    if_else(brew$state %in%
+    c("Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", "Utah",
+      "Wyoming", "Alaska", "California","Hawaii","Oregon","Washington"),
+    "West", 
+    "Not US"))))) %>%
+  select(id:state, Region, everything())
+
+table(brew_reg$Region)
+```
+
+    ## 
+    ##   Midwest Northeast    Not US     South      West 
+    ##        11         7         1         8        23
+
+``` r
+table(brew_reg$brewery_type)
+```
+
+    ## 
+    ##    brewpub     closed   contract      large      micro proprietor 
+    ##          9          2          1          7         30          1
+
+``` r
+table(brew_reg$Region, brew_reg$brewery_type)
+```
+
+    ##            
+    ##             brewpub closed contract large micro proprietor
+    ##   Midwest         1      0        0     0    10          0
+    ##   Northeast       2      0        0     0     5          0
+    ##   Not US          0      0        0     0     1          0
+    ##   South           2      0        1     0     5          0
+    ##   West            4      2        0     7     9          1
+
+``` r
+g <- ggplot(brew_reg, aes(x = Region))
+g + geom_bar(aes(fill = brewery_type)) +
+    labs(x = "Geographic Region",
+         y = "Number of Breweries",
+         title = "Bar Plot of Breweries by US Region") + 
+    scale_fill_discrete(name = "Brewery Type", 
+                        labels = c("Brewpub", "Closed", "Contract", "Large",
+                                   "Micro", "Proprietor")
+                        )
+```
+
+![](README_files/figure-gfm/unnamed-chunk-64-1.png)<!-- -->
+
+``` r
+micro <- get_brewery(type = "micro")
+large <- get_brewery(type = "large")
+combined <- bind_rows(micro, large)
+
+g <- ggplot(combined, aes(x = brewery_type, y = as.numeric(latitude)))
+g + geom_boxplot(fill = "red", na.rm = TRUE) +
+    geom_jitter() +
+    labs(title = "Boxplot of Latitudes by Brewery Type",
+         x = "Brewery Type",
+         y = "Latitude in Degrees")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-64-2.png)<!-- -->
+
+``` r
+g <- ggplot(combined, aes(x = brewery_type, y = as.numeric(longitude)))
+g + geom_boxplot(fill = "blue", na.rm = TRUE) +
+    geom_jitter() +
+    coord_flip() +
+    labs(title = "Boxplot of Longitudes by Brewery Type",
+         x = "Brewery Type",
+         y = "Longitude in Degrees")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-64-3.png)<!-- -->
