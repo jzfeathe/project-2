@@ -3,11 +3,11 @@ Project 2
 Justin Feathers & Luke Perkins
 2022-10-08
 
--   <a href="#overview" id="toc-overview">1 Overview</a>
-    -   <a href="#requirements" id="toc-requirements">1.1 Requirements</a>
--   <a href="#api-function" id="toc-api-function">2 API Function</a>
+-   <a href="#overview" id="toc-overview">Overview</a>
+    -   <a href="#requirements" id="toc-requirements">Requirements</a>
+-   <a href="#api-function" id="toc-api-function">API Function</a>
 -   <a href="#exploratory-data-analysis"
-    id="toc-exploratory-data-analysis">3 Exploratory Data Analysis</a>
+    id="toc-exploratory-data-analysis">Exploratory Data Analysis</a>
 
 The purpose of this vignette is to explain how to use a function created
 for interacting with a specific API, as well as demonstrate various
@@ -16,7 +16,7 @@ use. The [Beer API](https://www.openbrewerydb.org/) is a free API that
 contains publicly available address and contact information for
 breweries, cideries, brewpubs, and bottleshops all over the world.
 
-# 1 Overview
+# Overview
 
 The following packages were used to create this document:
 
@@ -25,7 +25,7 @@ The following packages were used to create this document:
 -   `tidyverse`: used for pipe operators and plotting  
 -   `jsonlite`: used for interacting with JSON in the API
 
-## 1.1 Requirements
+## Requirements
 
 The following packages were used to create this document:
 
@@ -34,7 +34,7 @@ The following packages were used to create this document:
 -   `tidyverse`: used for pipe operators and plotting  
 -   `jsonlite`: used for interacting with JSON in the API
 
-# 2 API Function
+# API Function
 
 The function we will use to query the API uses one endpoint, or
 connection point between the API and server, at
@@ -169,7 +169,7 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
 }
 ```
 
-# 3 Exploratory Data Analysis
+# Exploratory Data Analysis
 
 Now that we can access the endpoint with up to six different
 modifications, we can get some data to analyze. Let’s start by grabbing
