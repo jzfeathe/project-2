@@ -19,201 +19,7 @@ The following packages were used to create this document:
   + `tidyverse`: used for pipe operators and plotting
   + `jsonlite`: used for interacting with JSON in the API
 
-# API Functions
-
-Search breweries by city
-
-```{r}
-by_city <- function(city){
-  if (!is.character(city)){
-    stop("city must be a character string")
-  }
-  base <- "https://api.openbrewerydb.org/breweries"
-  url <- paste0(base, "?by_city=", city)
-  city_df <- fromJSON(rawToChar(GET(url)$content))
-  if (length(city_df) == 0 ){
-    message("No results found. Try a different city.")
-  }
-  else {
-    return(city_df)
-  }
-}
-```
-
-Search breweries by name. Can search by parts of the brewery name.
-
-```{r}
-by_name <- function(brewery){
-  if (!is.character(brewery)){
-    stop("brewery must be a character string")
-  }
-  base <- "https://api.openbrewerydb.org/breweries"
-  url <- paste0(base, "?by_name=", brewery)
-  brew_df <- fromJSON(rawToChar(GET(url)$content))
-  if (length(brew_df) == 0 ){
-    message("No results found. Try a different brewery.")
-  }
-  else {
-    return(brew_df)
-  }
-}
-```
-
-Search breweries by state
-
-```{r}
-by_state <- function(state, usa = TRUE){
-  if (!is.character(state)){
-    stop("state must be a character string")
-  }
-  if (usa){
-    if (nchar(state) == 2){
-      state <- toupper(state)
-      switch(state,
-                    AL =  state <- "Alabama",
-                    AK =  state <- "Alaska",
-                    AZ =  state <- "Arizona",
-                    AR =  state <- "Arkansas",
-                    CA =  state <- "California",
-                    CO =  state <- "Colorado",
-                    CT =  state <- "Connecticut",
-                    DE =  state <- "Delaware",
-                    DC =  state <- "District_of_Columbia",
-                    FL =  state <- "Florida",
-                    GA =  state <- "Georgia",
-                    HI =  state <- "Hawaii",
-                    ID =  state <- "Idaho",
-                    IL =  state <- "Illinois",
-                    IN =  state <- "Indiana",
-                    IA =  state <- "Iowa",
-                    KS =  state <- "Kansas",
-                    KY =  state <- "Kentucky",
-                    LA =  state <- "Louisiana",
-                    ME =  state <- "Maine",
-                    MD =  state <- "Maryland",
-                    MA =  state <- "Massachusetts",
-                    MI =  state <- "Michigan",
-                    MN =  state <- "Minnesota",
-                    MS =  state <- "Mississippi",
-                    MO =  state <- "Missouri",
-                    MT =  state <- "Montana",
-                    NE =  state <- "Nebraska",
-                    NV =  state <- "Nevada",
-                    NH =  state <- "New_Hampshire",
-                    NJ =  state <- "New_Jersey",
-                    NM =  state <- "New_Mexico",
-                    NY =  state <- "New_York",
-                    NC =  state <- "North_Carolina",
-                    ND =  state <- "North_Dakota",
-                    OH =  state <- "Ohio",
-                    OK =  state <- "Oklahoma",
-                    OR =  state <- "Oregon",
-                    PA =  state <- "Pennsylvania",
-                    PR =  state <- "Puerto_Rico",
-                    RI =  state <- "Rhode_Island",
-                    SC =  state <- "South_Carolina",
-                    SD =  state <- "South_Dakota",
-                    TN =  state <- "Tennessee",
-                    TX =  state <- "Texas",
-                    UT =  state <- "Utah",
-                    VT =  state <- "Vermont",
-                    VA =  state <- "Virginia",
-                    WA =  state <- "Washington",
-                    WV =  state <- "West_Virginia",
-                    WI =  state <- "Wisconsin",
-                    WY =  state <- "Wyoming",
-                    stop("usa state must be a 2 character abbreviation or name")
-             )
-    }
-  }
-  base <- "https://api.openbrewerydb.org/breweries"
-  url <- paste0(base, "?by_state=", state)
-  state_df <- fromJSON(rawToChar(GET(url)$content))
-  if (length(state_df) == 0 ){
-    message("No results found. Try a different state.")
-  }
-  else {
-    return(state_df)
-  }
-}
-```
-
-By type of brewery
-
-```{r}
-by_type <- function(type){
-  if (!is.character(type)){
-    stop("type must be a character string")
-  }
-  type <- tolower(type)
-  type_list <- c("micro", "nano", "regional", "brewpub", "large", "planning",
-                    "bar", "contract", "proprietor", "closed")
-  if (!(type %in% type_list)){
-    stop("type must be either micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, or closed")
-  }
-  base <- "https://api.openbrewerydb.org/breweries"
-  url <- paste0(base, "?by_type=", type)
-  type_df <- fromJSON(rawToChar(GET(url)$content))
-  if (length(type_df) == 0 ){
-    message("No results found. Try a different type.")
-  }
-  else {
-    return(type_df)
-  }
-}
-```
-
-```{r}
-by_postal <- function(postal){
-  if (!is.numeric(postal)){
-    stop("Postal code must be a 5 or 9 digit number")
-  }
-  else {
-    if ((nchar(postal) != 5) & (nchar(postal) != 9)){
-      stop("Postal code must be a 5 or 9 digit number")
-    }
-    else {
-      base <- "https://api.openbrewerydb.org/breweries"
-      if (nchar(postal) == 9){
-        newpostal <- sub("(.{5})(.*)", "\\1-\\2", postal)
-        url <- paste0(base, "?by_postal=", newpostal)
-        postal_df <- fromJSON(rawToChar(GET(url)$content))
-      }
-      if (nchar(postal) == 5){
-        url <- paste0(base, "?by_postal=", postal)
-        postal_df <- fromJSON(rawToChar(GET(url)$content))
-      }
-      if (length(postal_df) == 0){
-      message("No results found. Try a different postal code.")
-    }
-      else {
-        return(postal_df)
-      }
-    }
-  }
-}
-```
-
-```{r}
-by_dist <- function(latitude, longitude){
-  if ((!is.numeric(latitude)) | (!is.numeric(longitude))){
-    stop("Latitude and longitude must be numeric values")
-  }
-  else {
-    base <- "https://api.openbrewerydb.org/breweries"
-    url <- paste0(base, "?by_dist=", latitude, ",", longitude)
-    dist_df <- fromJSON(rawToChar(GET(url)$content))
-    if (length(dist_df) == 0 ){
-    message("No results found. Try different latitude and/or longitude.")
-      }
-      else {
-        return(dist_df)
-      }
-    }
-  }
-```
-
-Wrapper function
+# API Function
 
 Default pulls breweries
 
@@ -344,7 +150,84 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
 ```
 #Exploratory Data Analysis
 Now that we can access the endpoint with up to six different modifications, we can get some data
-to analyze. We'll start by calling the function `get_brewery(state = "ny")` to get brewery data
+to analyze. Let's start by grabbing some data without any modifications using `get_brewery()`
+```{r}
+noMod <- get_brewery()
+```
+
+Given that most of the results are from the U.S., it seems reasonable to assume we should land
+somewhere in Kansas (the center of the U.S.) using the means of the latitudes and longitudes 
+if the results from the call are representative -- that is, they are unbiased and evenly spread.
+```{r}
+usDist <- noMod %>%
+  select(name, city, state, latitude, longitude) %>%
+  mutate(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
+         meanLong = mean(as.numeric(longitude), na.rm = TRUE),
+         distFromMean = sqrt(((as.numeric(latitude) - meanLat)^2) +
+           ((as.numeric(longitude)- meanLong)^2)))
+usDist
+```
+
+How did we do? We can do another call using `get_brewery(state = "kansas")` to check.
+We can compare `meanLat` and `meanLong` with the latitude and longitude values from
+breweries located in Kansas.
+```{r}
+get_brewery(state = "kansas") %>%
+  select(latitude, longitude)
+```
+
+We were close, but not quite what we were hoping for. Some knowledge of geography
+lets us know we are just slightly north into the bordering state of Nebraska. But,
+we can also perform another call using `get_brewery(state = "nebraska")` to verify.
+
+```{r}
+get_brewery(state = "nebraska") %>%
+  select(latitude, longitude)
+```
+
+We can see that these values more closely align with the means we found. So what
+happened? If we look back at `usDist`, we can see one glaring outlier from 
+Killeshin, Ireland. Let's remove that and see if our results are better.
+
+```{r}
+noMod %>%
+  select(name, city, state, latitude, longitude) %>%
+  filter(city != "Killeshin") %>%
+  mutate(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
+         meanLong = mean(as.numeric(longitude), na.rm = TRUE),
+         distFromMean = sqrt(((as.numeric(latitude) - meanLat)^2) +
+           ((as.numeric(longitude)- meanLong)^2))) %>%
+  arrange(state)
+```
+
+Now we are a bit further away than expected, so it appears that although close, this
+data is not quite representative or unbiased. Visual inspection of the tibble shows
+us that 6 results are from Oregon, with California and Colorado having 4 each; it
+seems reasonable to assume this is why our means are northwest of where we expected.
+
+A visual representation can help solidify our findings. We can use a histogram for this.
+Here is a histogram including the brewery from Ireland. Though clearly skewed right here,
+it looks like it could be considered nearly normally-distributed without the outlier.
+The x-axis shows us the distance from the mean and each bar's height represents the
+frequency that breweries were that corresponding distance from the mean.
+
+```{r}
+g <- ggplot(usDist, aes(x = distFromMean))
+g + geom_histogram() 
+```
+Here is the histogram without the brewery from Ireland. Again, it looks nearly
+normally-distributed. This indicates that it is nearly representative of the population.
+As the above histogram, the x-axis is the distance from the mean and the y-axis consists
+of the corresponding frequencies of breweries' distances from the mean.
+
+```{r}
+g <- ggplot(na.omit(usDist), aes(x = distFromMean))
+g + geom_histogram()
+```
+
+
+
+Next, let's look at some more specific data by calling the function `get_brewery(state = "ny")` to get brewery data
 for the state of New York.
 ```{r}
 #Get brewery data for NY
@@ -383,6 +266,7 @@ nyDist %>%
             meanLong = mean(as.numeric(longitude), na.rm = TRUE),
             sdLat = sd(latitude, na.rm = TRUE), sdLong = sd(longitude, na.rm = TRUE))
 ```
+
 =======
 Derive Region variable from state, make contingency tables, create bar graph.
 
