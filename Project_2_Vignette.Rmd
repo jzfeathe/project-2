@@ -303,7 +303,16 @@ We want to see if there are any patterns by type of brewery. To do this, we will
 latitude and longitude values across brewery types. Additionally, we may want to look at
 the means of each type to see if they have significant variance.
 
-We started 
+We started by creating a new object called `nyDist` that uses the modified `ny` dataset
+and selects the `name`, `brewery_type`, `latitude`, and `longitude` variables. Because
+we're interested in whether patterns exist by brewery type, we used `group_by(brewery_type)`
+to group the data by `brewery_type` and perform separate calculations per level of 
+the groups. We used `mutate()` again to add columns for newly calculated `meanLat`
+and `meanLong`; again we had to remember to set the variables to numeric using
+`as.numeric` and being careful to ignore `NA` values by setting `na.rm = TRUE`.
+Finally, we used the `arrange()` function to arrange the data by our newly created
+variable.
+
 ```{r}
 nyDist <- ny %>% 
   select(name, brewery_type, latitude, longitude) %>%
@@ -315,6 +324,16 @@ nyDist
 ```
 
 Now that we have the data, let's create a scatter plot to look for obvious patterns.
+As before, we created a base `g` object using `ggplot()` and we used `na.omit()`
+again -- this time to make sure `NA` doesn't show up on the y-axis. This time we
+added a `y =` to the `aes()` statement since a scatter plot needs a variable on 
+both axes. We used a `geom_point()` layer to create the actual scatter plot and 
+specified `color = brewery_type` in the `aes()` statement to display breweries
+by type using different colors (and automatically creating a nice legend). As before,
+a `labs()` layer was used to name the axes and give the plot a title. The first `theme()`
+layer was used to rotate the x-axis 90 degrees so the longitude values could be 
+legible, while the second `theme()` layer was used to center the title.
+
 ```{r}
 g <- ggplot(na.omit(nyDist), aes(x = longitude, y = latitude))
 g + geom_point(aes(color = brewery_type)) +
@@ -324,9 +343,25 @@ g + geom_point(aes(color = brewery_type)) +
     theme(plot.title = element_text(hjust = 0.5))
 ```
 
-There doesn't appear to be any sort of obvious pattern that would suggest a preference
-of location to build a brewery, but there are clusters or groups of breweries by type.
-We believe this suggests the influence of competition. 
+As the labels would suggest, this plots the longitude vs. latitude of each brewery
+in our dataset. Looking at the plot, there doesn't appear to be any sort of obvious
+pattern that would suggest a preference of location to build a brewery, but there
+are clusters or groups of breweries by type. We believe this suggests the influence
+of competition. 
+
+Finally, let's look at a breakdown of some summary statistics for this numerical data
+at each setting of the `brewery_type` variable. To do this, we used the same `nyDist`
+dataset in conjunction with the `summarize()` function to print a tibble of `meanLat`,
+`meanLong`, along with `sdLat` and `sdLong` that we created using the built-in `sd()`
+function. Like in previous calculations, it was important to set `latitude` and 
+`longitude` as numeric values using `as.numeric()` and omitting `NA` values from
+the calculations using `na.rm = TRUE`.
+
+The values of `meanLat` and `meanLong` are very similar across all categories of
+`brewery_type`. We believe this suggests an even spattering of types across all
+available locations -- this could be understood to indicate that no major confounders
+exist that dictate where a type of brewery may be established.
+
 ```{r}
 nyDist %>%
   summarize(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
