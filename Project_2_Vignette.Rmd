@@ -4,8 +4,11 @@ author: "Justin Feathers & Luke Perkins"
 date: "2022-10-08"
 ---
 
-This document is a vignette to explain how to get data from the Open Brewery API using
-calls and modifications.
+The purpose of this vignette is to explain how to use a function created for
+interacting with a specific API, as well as demonstrate various types of
+analyses that can be conducted on the data obtained from its use. The [Beer API](https://www.openbrewerydb.org/) is a free API that contains publicly
+available address and contact information for breweries, cideries, brewpubs, and
+bottleshops all over the world.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
@@ -14,7 +17,7 @@ library(tidyverse)
 library(jsonlite)
 ```
 
-# Requirements
+# Overview
 
 The following packages were used to create this document:  
 
@@ -23,13 +26,24 @@ The following packages were used to create this document:
   * `tidyverse`: used for pipe operators and plotting  
   * `jsonlite`: used for interacting with JSON in the API  
 
+
+## Requirements
+
+The following packages were used to create this document: 
+
+  + `knitr`: used to document code in R Markdown format  
+  + `httr`: used to connect to the API  
+  + `tidyverse`: used for pipe operators and plotting  
+  + `jsonlite`: used for interacting with JSON in the API  
+
 # API Function
 
-Here, we created the function needed to pull a list of breweries from main Open
-Brewery API. The "List Breweries" endpoint was the only one we found to be particularly
-useful, especially if you're interested in modifications. As such, we felt it 
-necessary to create a single function with a section for each modification that can
-be used in any desired combination to get to the endpoint.
+The function we will use to query the API uses one endpoint, or connection point
+between the API and server, at <https://api.openbrewerydb.org/breweries>. Six
+different modifications, each passed as separate arguments of the function, 
+allow the user to filter the returned API data based on any combination of 
+single values of the variables of interest.
+
 
 ```{r}
 get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, 
@@ -156,7 +170,8 @@ get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL,
   }
 }
 ```
-# Exploratory Data Analysis
+# Exploratory Data Analysis  
+
 Now that we can access the endpoint with up to six different modifications, we can get some data
 to analyze. Let's start by grabbing some data without any modifications using `get_brewery()`
 ```{r}
@@ -240,7 +255,6 @@ g + geom_histogram(color = 4, fill = "white", bins = 10) +
 ```
 
 
-
 Next, let's look at some more specific data by calling the function `get_brewery(state = "ny")` to get brewery data
 for the state of New York.
 ```{r}
@@ -281,7 +295,7 @@ nyDist %>%
             sdLat = sd(latitude, na.rm = TRUE), sdLong = sd(longitude, na.rm = TRUE))
 ```
 
-=======
+
 Derive Region variable from state, make contingency tables, create bar graph.
 
 ```{r}
