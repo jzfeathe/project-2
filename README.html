@@ -602,16 +602,6 @@ body {
 
 <h1 id="project-2">Project 2</h1>
 <p>Justin Feathers &amp; Luke Perkins 2022-10-08</p>
-<ul>
-<li><a href="#overview" id="toc-overview">1 Overview</a>
-<ul>
-<li><a href="#requirements" id="toc-requirements">1.1
-Requirements</a></li>
-</ul></li>
-<li><a href="#api-function" id="toc-api-function">2 API
-Function</a></li>
-<li><a href="#exploratory-data-analysis" id="toc-exploratory-data-analysis">3 Exploratory Data Analysis</a></li>
-</ul>
 <p>The purpose of this vignette is to explain how to use a function
 created for interacting with a specific API, as well as demonstrate
 various types of analyses that can be conducted on the data obtained
@@ -619,7 +609,7 @@ from its use. The <a href="https://www.openbrewerydb.org/">Beer API</a>
 is a free API that contains publicly available address and contact
 information for breweries, cideries, brewpubs, and bottleshops all over
 the world.</p>
-<h1 id="id_1-overview">1 Overview</h1>
+<h1 id="overview">Overview</h1>
 <p>The following packages were used to create this document:</p>
 <ul>
 <li><code>knitr</code>: used to document code in R Markdown format</li>
@@ -628,7 +618,7 @@ the world.</p>
 <li><code>jsonlite</code>: used for interacting with JSON in the
 API</li>
 </ul>
-<h2 id="id_11-requirements">1.1 Requirements</h2>
+<h2 id="requirements">Requirements</h2>
 <p>The following packages were used to create this document:</p>
 <ul>
 <li><code>knitr</code>: used to document code in R Markdown format</li>
@@ -637,7 +627,7 @@ API</li>
 <li><code>jsonlite</code>: used for interacting with JSON in the
 API</li>
 </ul>
-<h1 id="id_2-api-function">2 API Function</h1>
+<h1 id="api-function">API Function</h1>
 <p>The function we will use to query the API uses one endpoint, or
 connection point between the API and server, at <a href="https://api.openbrewerydb.org/breweries">https://api.openbrewerydb.org/breweries</a>.
 Six different modifications, each passed as separate arguments of the
@@ -766,7 +756,7 @@ combination of single values of the variables of interest.</p>
 <span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(df)</span>
 <span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<h1 id="id_3-exploratory-data-analysis">3 Exploratory Data Analysis</h1>
+<h1 id="exploratory-data-analysis">Exploratory Data Analysis</h1>
 <p>Now that we can access the endpoint with up to six different
 modifications, we can get some data to analyze. Let’s start by grabbing
 some data without any modifications using <code>get_brewery()</code></p>
@@ -774,8 +764,21 @@ some data without any modifications using <code>get_brewery()</code></p>
 <p>Given that most of the results are from the U.S., it seems reasonable
 to assume we should land somewhere in Kansas (the center of the U.S.)
 using the means of the latitudes and longitudes if the results from the
-call are representative – that is, they are unbiased and evenly
-spread.</p>
+call are representative – that is, they are unbiased and evenly spread.
+We started by taking the unmodified data and subsetting it by selecting
+only the <code>name</code>, <code>city</code>, <code>state</code>,
+<code>latitude</code>, and <code>longitude</code> variables. Really, the
+only necessary variables to perform the calculations are
+<code>latitude</code> and <code>longitude</code>, but the others provide
+nice labels for understanding the locations of the breweries. From
+there, we used <code>mutate()</code> to add new variables to our dataset
+that find the means for both <code>latitude</code> and
+<code>longitude</code>, being careful to set them as numeric variables
+and ignoring <code>NA</code> values to ensure the calculation would
+work. Finally, we created a <code>distFromMean</code> variable using the
+familiar distance formula d = sqrt[(x<sub>2</sub> -
+x<sub>1</sub>)<sup>2</sup> + (y<sub>2</sub> -
+y<sub>1</sub>)<sup>2</sup>]</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>usDist <span class="ot">&lt;-</span> noMod <span class="sc">%&gt;%</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(name, city, state, latitude, longitude) <span class="sc">%&gt;%</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">meanLat =</span> <span class="fu">mean</span>(<span class="fu">as.numeric</span>(latitude), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
@@ -783,64 +786,238 @@ spread.</p>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">distFromMean =</span> <span class="fu">sqrt</span>(((<span class="fu">as.numeric</span>(latitude) <span class="sc">-</span> meanLat)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>           ((<span class="fu">as.numeric</span>(longitude)<span class="sc">-</span> meanLong)<span class="sc">^</span><span class="dv">2</span>)))</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>usDist</span></code></pre></div>
-<pre><code>## # A tibble: 50 x 8
-##    name                            city      state      latitude           longitude           meanLat meanLong distFromMean
-##    &lt;chr&gt;                           &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt;              &lt;chr&gt;                 &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;
-##  1 10-56 Brewing Company           Knox      Indiana    41.289715          -86.627954             41.0    -100.        13.8 
-##  2 10 Barrel Brewing Co            Bend      Oregon     44.08683530625218  -121.28170597038259    41.0    -100.        21.1 
-##  3 10 Barrel Brewing Co            Bend      Oregon     44.057564901366796 -121.32880209261799    41.0    -100.        21.1 
-##  4 10 Barrel Brewing Co - Bend Pub Bend      Oregon     44.0912109         -121.2809536           41.0    -100.        21.1 
-##  5 10 Barrel Brewing Co - Boise    Boise     Idaho      43.618516          -116.202929            41.0    -100.        16.0 
-##  6 10 Barrel Brewing Co - Denver   Denver    Colorado   39.7592508         -104.9853655           41.0    -100.         4.69
-##  7 10 Barrel Brewing Co            Portland  Oregon     45.5259786         -122.6855056           41.0    -100.        22.7 
-##  8 10 Barrel Brewing Co            San Diego California 32.714813          -117.129593            41.0    -100.        18.6 
-##  9 10 Torr Distilling and Brewing  Reno      Nevada     39.5171702         -119.7732015           41.0    -100.        19.4 
-## 10 101 Brewery                     Quilcene  Washington 47.823475773720666 -122.87558226136872    41.0    -100.        23.4 
-## # ... with 40 more rows</code></pre>
+<pre><code>##                                             name                  city          state           latitude
+## 1                          10-56 Brewing Company                  Knox        Indiana          41.289715
+## 2                           10 Barrel Brewing Co                  Bend         Oregon  44.08683530625218
+## 3                           10 Barrel Brewing Co                  Bend         Oregon 44.057564901366796
+## 4                10 Barrel Brewing Co - Bend Pub                  Bend         Oregon         44.0912109
+## 5                   10 Barrel Brewing Co - Boise                 Boise          Idaho          43.618516
+## 6                  10 Barrel Brewing Co - Denver                Denver       Colorado         39.7592508
+## 7                           10 Barrel Brewing Co              Portland         Oregon         45.5259786
+## 8                           10 Barrel Brewing Co             San Diego     California          32.714813
+## 9                 10 Torr Distilling and Brewing                  Reno         Nevada         39.5171702
+## 10                                   101 Brewery              Quilcene     Washington 47.823475773720666
+## 11                     101 North Brewing Company              Petaluma     California 38.270293813150886
+## 12                           105 West Brewing Co           Castle Rock       Colorado        39.38269495
+## 13                                   10K Brewing                 Anoka      Minnesota        45.19812039
+## 14                 10th District Brewing Company              Abington  Massachusetts        42.10591754
+## 15                      11 Below Brewing Company               Houston          Texas         29.9515464
+## 16                               1188 Brewing Co              John Day         Oregon         44.4146563
+## 17                      12 Acres Brewing Company             Killeshin           &lt;NA&gt;        52.84930763
+## 18                      12 Gates Brewing Company         Williamsville       New York               &lt;NA&gt;
+## 19                       12 West Brewing Company               Gilbert        Arizona               &lt;NA&gt;
+## 20 12 West Brewing Company - Production Facility                  Mesa        Arizona          33.436188
+## 21                           122 West Brewing Co            Bellingham     Washington         48.7621709
+## 22                                   127 Brewing               Jackson       Michigan        42.28667212
+## 23                              12Degree Brewing            Louisville       Colorado         39.9782443
+## 24                          12welve Eyes Brewing            Saint Paul      Minnesota               &lt;NA&gt;
+## 25                              13 Below Brewery            Cincinnati           Ohio        39.12639764
+## 26                            13 Stripes Brewery               Taylors South Carolina               &lt;NA&gt;
+## 27                         13 Virtues Brewing Co              Portland         Oregon         45.4762536
+## 28                                    1323 R &amp; D               Raleigh North Carolina               &lt;NA&gt;
+## 29                    14 Cannons Brewing Company      Westlake Village     California           34.15334
+## 30                              14 Lakes Brewery             Crosslake      Minnesota               &lt;NA&gt;
+## 31                          14er Brewing Company                Denver       Colorado         39.7614112
+## 32                             14th Star Brewing          Saint Albans        Vermont               &lt;NA&gt;
+## 33                               16 Lots Brewing                 Mason           Ohio         39.3545967
+## 34                            16 Mile Brewing Co            Georgetown       Delaware         38.6788938
+## 35                              16 Stone Brewpub        Holland Patent       New York        43.24211175
+## 36                          1623 Brewing CO, llc          Westminister       Maryland               &lt;NA&gt;
+## 37                         1718 Ocracoke Brewing              Ocracoke North Carolina        35.10715368
+## 38                          1781 Brewing Company          Spotsylvania       Virginia               &lt;NA&gt;
+## 39                                180 and Tapped            Coraopolis   Pennsylvania        40.50984957
+## 40                                  1817 Brewery               okolona    Mississippi          34.001703
+## 41                          1840 Brewing Company             Milwaukee      Wisconsin        43.00436242
+## 42                          1850 Brewing Company              Mariposa     California          37.570148
+## 43                           18th Street Brewery                  Gary        Indiana        41.59928343
+## 44                           18th Street Brewery               Hammond        Indiana        41.61556796
+## 45                          1905 Brewing Company            Assumption       Illinois         39.5172564
+## 46                                  1912 Brewing                Tucson        Arizona        32.24673727
+## 47                                   192 Brewing               Kenmore     Washington        47.75670075
+## 48                        1940&#39;s Brewing Company              Holbrook       New York               &lt;NA&gt;
+## 49                       1st Republic Brewing Co        Essex Junction        Vermont               &lt;NA&gt;
+## 50                              2 Basset Brewery White Sulphur Springs        Montana        46.54807609
+##              longitude  meanLat  meanLong distFromMean
+## 1           -86.627954 40.98436 -100.4575    13.832900
+## 2  -121.28170597038259 40.98436 -100.4575    21.054063
+## 3  -121.32880209261799 40.98436 -100.4575    21.096362
+## 4         -121.2809536 40.98436 -100.4575    21.053964
+## 5          -116.202929 40.98436 -100.4575    15.964267
+## 6         -104.9853655 40.98436 -100.4575     4.690695
+## 7         -122.6855056 40.98436 -100.4575    22.687248
+## 8          -117.129593 40.98436 -100.4575    18.610339
+## 9         -119.7732015 40.98436 -100.4575    19.371361
+## 10 -122.87558226136872 40.98436 -100.4575    23.438101
+## 11 -122.66505504468803 40.98436 -100.4575    22.372805
+## 12        -104.8667206 40.98436 -100.4575     4.691131
+## 13        -93.38952559 40.98436 -100.4575     8.228717
+## 14        -70.94594149 40.98436 -100.4575    29.532846
+## 15         -95.5186591 40.98436 -100.4575    12.087806
+## 16        -118.9218754 40.98436 -100.4575    18.780327
+## 17        -6.979343891 40.98436 -100.4575    94.228125
+## 18                &lt;NA&gt; 40.98436 -100.4575           NA
+## 19                &lt;NA&gt; 40.98436 -100.4575           NA
+## 20        -111.5860662 40.98436 -100.4575    13.446944
+## 21         -122.485982 40.98436 -100.4575    23.361272
+## 22        -84.43116792 40.98436 -100.4575    16.079142
+## 23        -105.1319826 40.98436 -100.4575     4.781550
+## 24                &lt;NA&gt; 40.98436 -100.4575           NA
+## 25        -84.70634815 40.98436 -100.4575    15.860338
+## 26                &lt;NA&gt; 40.98436 -100.4575           NA
+## 27        -122.6487531 40.98436 -100.4575    22.641323
+## 28                &lt;NA&gt; 40.98436 -100.4575           NA
+## 29         -118.802397 40.98436 -100.4575    19.575463
+## 30                &lt;NA&gt; 40.98436 -100.4575           NA
+## 31        -104.9839636 40.98436 -100.4575     4.688777
+## 32                &lt;NA&gt; 40.98436 -100.4575           NA
+## 33         -84.3183801 40.98436 -100.4575    16.221184
+## 34        -75.37816436 40.98436 -100.4575    25.185064
+## 35         -75.2565195 40.98436 -100.4575    25.301898
+## 36                &lt;NA&gt; 40.98436 -100.4575           NA
+## 37        -75.97176063 40.98436 -100.4575    25.181188
+## 38                &lt;NA&gt; 40.98436 -100.4575           NA
+## 39        -80.15020356 40.98436 -100.4575    20.312823
+## 40          -88.750264 40.98436 -100.4575    13.631454
+## 41        -87.90606942 40.98436 -100.4575    12.712922
+## 42        -119.9036592 40.98436 -100.4575    19.743622
+## 43        -87.26887786 40.98436 -100.4575    13.202933
+## 44          -87.517422 40.98436 -100.4575    12.955447
+## 45         -89.0503635 40.98436 -100.4575    11.501078
+## 46        -110.9927505 40.98436 -100.4575    13.687146
+## 47        -122.2415652 40.98436 -100.4575    22.812513
+## 48                &lt;NA&gt; 40.98436 -100.4575           NA
+## 49                &lt;NA&gt; 40.98436 -100.4575           NA
+## 50        -110.9004865 40.98436 -100.4575    11.832633</code></pre>
 <p>How did we do? We can do another call using
-<code>get_brewery(state = &quot;kansas&quot;)</code> to check. We can compare
-<code>meanLat</code> and <code>meanLong</code> with the latitude and
-longitude values from breweries located in Kansas.</p>
+<code>get_brewery(state = &quot;kansas&quot;)</code> to check. Because we’re only
+doing a quick check against the <code>latitude</code> and
+<code>longitude</code> values, we’re not concerned with grabbing the
+other variables this time. We can compare <code>meanLat</code> and
+<code>meanLong</code> with the latitude and longitude values from
+breweries located in Kansas. As a side note, this API allows for
+searching by partial match, so calling
+<code>get_brewery(state = &quot;kansas&quot;)</code> returns results for both
+Kansas and Arkansas.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_brewery</span>(<span class="at">state =</span> <span class="st">&quot;kansas&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(latitude, longitude)</span></code></pre></div>
-<pre><code>## # A tibble: 50 x 2
-##    latitude    longitude   
-##    &lt;chr&gt;       &lt;chr&gt;       
-##  1 38.9429674  -95.28093353
-##  2 37.68455054 -97.35071131
-##  3 36.1297079  -94.1372796 
-##  4 37.69517328 -97.44431468
-##  5 38.639049   -98.667933  
-##  6 36.3168272  -94.1178372 
-##  7 36.364069   -94.200584  
-##  8 &lt;NA&gt;        &lt;NA&gt;        
-##  9 39.0002602  -95.6846745 
+<pre><code>##       latitude    longitude
+## 1   38.9429674 -95.28093353
+## 2  37.68455054 -97.35071131
+## 3   36.1297079  -94.1372796
+## 4  37.69517328 -97.44431468
+## 5    38.639049   -98.667933
+## 6   36.3168272  -94.1178372
+## 7    36.364069   -94.200584
+## 8         &lt;NA&gt;         &lt;NA&gt;
+## 9   39.0002602  -95.6846745
 ## 10 34.73235496 -92.25366807
-## # ... with 40 more rows</code></pre>
+## 11 38.84100296   -97.608998
+## 12 38.98568748 -94.66993927
+## 13        &lt;NA&gt;         &lt;NA&gt;
+## 14 36.03163581 -90.52047972
+## 15        &lt;NA&gt;         &lt;NA&gt;
+## 16   34.752616   -92.366648
+## 17        &lt;NA&gt;         &lt;NA&gt;
+## 18  37.6846165  -97.3184245
+## 19  36.0771652 -94.16886854
+## 20        &lt;NA&gt;         &lt;NA&gt;
+## 21        &lt;NA&gt;         &lt;NA&gt;
+## 22        &lt;NA&gt;         &lt;NA&gt;
+## 23 36.05959704 -94.16087539
+## 24  34.7475388  -92.2653101
+## 25        &lt;NA&gt;         &lt;NA&gt;
+## 26 34.75942775 -92.27268921
+## 27   37.754632  -100.020307
+## 28  36.0625843  -94.1574328
+## 29        &lt;NA&gt;         &lt;NA&gt;
+## 30        &lt;NA&gt;         &lt;NA&gt;
+## 31   35.310777   -94.298483
+## 32  36.0879053 -94.16478287
+## 33        &lt;NA&gt;         &lt;NA&gt;
+## 34 38.97243469 -95.23580916
+## 35 38.94967284 -95.22586264
+## 36 38.87174492 -99.32909033
+## 37  36.4000796  -93.7392419
+## 38  39.1233376  -94.8239539
+## 39 38.91268389 -94.75995296
+## 40        &lt;NA&gt;         &lt;NA&gt;
+## 41 39.31683651 -94.91052465
+## 42 37.62820924  -97.7812689
+## 43 39.01466361  -95.7637047
+## 44  36.3320197  -94.1185366
+## 45  36.0666309 -94.16524371
+## 46  37.6860464  -97.3335112
+## 47 36.11719055 -94.15714342
+## 48        &lt;NA&gt;         &lt;NA&gt;
+## 49 39.81655418  -97.0511838
+## 50  38.9683511  -95.2285539</code></pre>
 <p>We were close, but not quite what we were hoping for. Some knowledge
 of geography lets us know we are just slightly north into the bordering
 state of Nebraska. But, we can also perform another call using
 <code>get_brewery(state = &quot;nebraska&quot;)</code> to verify.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">get_brewery</span>(<span class="at">state =</span> <span class="st">&quot;nebraska&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(latitude, longitude)</span></code></pre></div>
-<pre><code>## # A tibble: 50 x 2
-##    latitude    longitude   
-##    &lt;chr&gt;       &lt;chr&gt;       
-##  1 &lt;NA&gt;        &lt;NA&gt;        
-##  2 &lt;NA&gt;        &lt;NA&gt;        
-##  3 41.28489756 -96.00634511
-##  4 40.77999602 -96.70701376
-##  5 &lt;NA&gt;        &lt;NA&gt;        
-##  6 42.87204733 -100.5457277
-##  7 &lt;NA&gt;        &lt;NA&gt;        
-##  8 40.90629564 -97.09777551
-##  9 &lt;NA&gt;        &lt;NA&gt;        
+<pre><code>##       latitude    longitude
+## 1         &lt;NA&gt;         &lt;NA&gt;
+## 2         &lt;NA&gt;         &lt;NA&gt;
+## 3  41.28489756 -96.00634511
+## 4  40.77999602 -96.70701376
+## 5         &lt;NA&gt;         &lt;NA&gt;
+## 6  42.87204733 -100.5457277
+## 7         &lt;NA&gt;         &lt;NA&gt;
+## 8  40.90629564 -97.09777551
+## 9         &lt;NA&gt;         &lt;NA&gt;
 ## 10 41.25449082 -95.93090524
-## # ... with 40 more rows</code></pre>
+## 11 42.53141502 -98.97836727
+## 12  40.8123075 -96.69344422
+## 13        &lt;NA&gt;         &lt;NA&gt;
+## 14   42.032539   -97.466386
+## 15  40.8155873  -96.7105429
+## 16 40.43061571 -98.10588657
+## 17  41.2578153 -95.96580178
+## 18  40.5844989  -98.3877198
+## 19        &lt;NA&gt;         &lt;NA&gt;
+## 20 41.42940061  -97.3621271
+## 21   41.268008   -96.071539
+## 22  40.8135885  -96.6872327
+## 23 40.81481116 -96.69768022
+## 24        &lt;NA&gt;         &lt;NA&gt;
+## 25        &lt;NA&gt;         &lt;NA&gt;
+## 26   41.284907   -96.007724
+## 27  41.2077948  -96.0980711
+## 28 41.23283768 -96.08239397
+## 29        &lt;NA&gt;         &lt;NA&gt;
+## 30  42.2294276  -97.0191502
+## 31        &lt;NA&gt;         &lt;NA&gt;
+## 32        &lt;NA&gt;         &lt;NA&gt;
+## 33        &lt;NA&gt;         &lt;NA&gt;
+## 34 40.81497373 -96.71088449
+## 35        &lt;NA&gt;         &lt;NA&gt;
+## 36        &lt;NA&gt;         &lt;NA&gt;
+## 37  40.4368517 -99.37228235
+## 38        &lt;NA&gt;         &lt;NA&gt;
+## 39        &lt;NA&gt;         &lt;NA&gt;
+## 40        &lt;NA&gt;         &lt;NA&gt;
+## 41  41.1772046  -96.0813295
+## 42        &lt;NA&gt;         &lt;NA&gt;
+## 43    41.12294 -100.7916041
+## 44        &lt;NA&gt;         &lt;NA&gt;
+## 45 40.92675443 -98.34025786
+## 46        &lt;NA&gt;         &lt;NA&gt;
+## 47        &lt;NA&gt;         &lt;NA&gt;
+## 48 41.60253006 -98.92940309
+## 49        &lt;NA&gt;         &lt;NA&gt;
+## 50        &lt;NA&gt;         &lt;NA&gt;</code></pre>
 <p>We can see that these values more closely align with the means we
 found. So what happened? If we look back at <code>usDist</code>, we can
 see one glaring outlier from Killeshin, Ireland. Let’s remove that and
-see if our results are better.</p>
+see if our results are better. Because the mean values in
+<code>usDist</code> were calculated using all observations, we need to
+remember to start over with the unmodified data <code>noMod</code>.
+Again, we select all variables of interest with <code>select()</code>,
+but this time we can use a <code>filter()</code> function to select
+observations where <code>city</code> does not equal “Killeshin.” Then,
+we simply calculate the means as before with the subsetted data.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>noMod <span class="sc">%&gt;%</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(name, city, state, latitude, longitude) <span class="sc">%&gt;%</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(city <span class="sc">!=</span> <span class="st">&quot;Killeshin&quot;</span>) <span class="sc">%&gt;%</span></span>
@@ -849,42 +1026,146 @@ see if our results are better.</p>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">distFromMean =</span> <span class="fu">sqrt</span>(((<span class="fu">as.numeric</span>(latitude) <span class="sc">-</span> meanLat)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>           ((<span class="fu">as.numeric</span>(longitude)<span class="sc">-</span> meanLong)<span class="sc">^</span><span class="dv">2</span>))) <span class="sc">%&gt;%</span></span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(state)</span></code></pre></div>
-<pre><code>## # A tibble: 49 x 8
-##    name                                          city             state     latitude longitude meanLat meanLong distFromMean
-##    &lt;chr&gt;                                         &lt;chr&gt;            &lt;chr&gt;     &lt;chr&gt;    &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;
-##  1 12 West Brewing Company                       Gilbert          Arizona   &lt;NA&gt;     &lt;NA&gt;         40.7    -103.        NA   
-##  2 12 West Brewing Company - Production Facility Mesa             Arizona   33.4361~ -111.586~    40.7    -103.        11.3 
-##  3 1912 Brewing                                  Tucson           Arizona   32.2467~ -110.992~    40.7    -103.        11.7 
-##  4 10 Barrel Brewing Co                          San Diego        Californ~ 32.7148~ -117.129~    40.7    -103.        16.3 
-##  5 101 North Brewing Company                     Petaluma         Californ~ 38.2702~ -122.665~    40.7    -103.        19.9 
-##  6 14 Cannons Brewing Company                    Westlake Village Californ~ 34.15334 -118.802~    40.7    -103.        17.2 
-##  7 1850 Brewing Company                          Mariposa         Californ~ 37.5701~ -119.903~    40.7    -103.        17.3 
-##  8 10 Barrel Brewing Co - Denver                 Denver           Colorado  39.7592~ -104.985~    40.7    -103.         2.26
-##  9 105 West Brewing Co                           Castle Rock      Colorado  39.3826~ -104.866~    40.7    -103.         2.34
-## 10 12Degree Brewing                              Louisville       Colorado  39.9782~ -105.131~    40.7    -103.         2.32
-## # ... with 39 more rows</code></pre>
+<pre><code>##                                             name                  city          state           latitude
+## 1                        12 West Brewing Company               Gilbert        Arizona               &lt;NA&gt;
+## 2  12 West Brewing Company - Production Facility                  Mesa        Arizona          33.436188
+## 3                                   1912 Brewing                Tucson        Arizona        32.24673727
+## 4                           10 Barrel Brewing Co             San Diego     California          32.714813
+## 5                      101 North Brewing Company              Petaluma     California 38.270293813150886
+## 6                     14 Cannons Brewing Company      Westlake Village     California           34.15334
+## 7                           1850 Brewing Company              Mariposa     California          37.570148
+## 8                  10 Barrel Brewing Co - Denver                Denver       Colorado         39.7592508
+## 9                            105 West Brewing Co           Castle Rock       Colorado        39.38269495
+## 10                              12Degree Brewing            Louisville       Colorado         39.9782443
+## 11                          14er Brewing Company                Denver       Colorado         39.7614112
+## 12                            16 Mile Brewing Co            Georgetown       Delaware         38.6788938
+## 13                  10 Barrel Brewing Co - Boise                 Boise          Idaho          43.618516
+## 14                          1905 Brewing Company            Assumption       Illinois         39.5172564
+## 15                         10-56 Brewing Company                  Knox        Indiana          41.289715
+## 16                           18th Street Brewery                  Gary        Indiana        41.59928343
+## 17                           18th Street Brewery               Hammond        Indiana        41.61556796
+## 18                          1623 Brewing CO, llc          Westminister       Maryland               &lt;NA&gt;
+## 19                 10th District Brewing Company              Abington  Massachusetts        42.10591754
+## 20                                   127 Brewing               Jackson       Michigan        42.28667212
+## 21                                   10K Brewing                 Anoka      Minnesota        45.19812039
+## 22                          12welve Eyes Brewing            Saint Paul      Minnesota               &lt;NA&gt;
+## 23                              14 Lakes Brewery             Crosslake      Minnesota               &lt;NA&gt;
+## 24                                  1817 Brewery               okolona    Mississippi          34.001703
+## 25                              2 Basset Brewery White Sulphur Springs        Montana        46.54807609
+## 26                10 Torr Distilling and Brewing                  Reno         Nevada         39.5171702
+## 27                      12 Gates Brewing Company         Williamsville       New York               &lt;NA&gt;
+## 28                              16 Stone Brewpub        Holland Patent       New York        43.24211175
+## 29                        1940&#39;s Brewing Company              Holbrook       New York               &lt;NA&gt;
+## 30                                    1323 R &amp; D               Raleigh North Carolina               &lt;NA&gt;
+## 31                         1718 Ocracoke Brewing              Ocracoke North Carolina        35.10715368
+## 32                              13 Below Brewery            Cincinnati           Ohio        39.12639764
+## 33                               16 Lots Brewing                 Mason           Ohio         39.3545967
+## 34                          10 Barrel Brewing Co                  Bend         Oregon  44.08683530625218
+## 35                          10 Barrel Brewing Co                  Bend         Oregon 44.057564901366796
+## 36               10 Barrel Brewing Co - Bend Pub                  Bend         Oregon         44.0912109
+## 37                          10 Barrel Brewing Co              Portland         Oregon         45.5259786
+## 38                               1188 Brewing Co              John Day         Oregon         44.4146563
+## 39                         13 Virtues Brewing Co              Portland         Oregon         45.4762536
+## 40                                180 and Tapped            Coraopolis   Pennsylvania        40.50984957
+## 41                            13 Stripes Brewery               Taylors South Carolina               &lt;NA&gt;
+## 42                      11 Below Brewing Company               Houston          Texas         29.9515464
+## 43                             14th Star Brewing          Saint Albans        Vermont               &lt;NA&gt;
+## 44                       1st Republic Brewing Co        Essex Junction        Vermont               &lt;NA&gt;
+## 45                          1781 Brewing Company          Spotsylvania       Virginia               &lt;NA&gt;
+## 46                                   101 Brewery              Quilcene     Washington 47.823475773720666
+## 47                           122 West Brewing Co            Bellingham     Washington         48.7621709
+## 48                                   192 Brewing               Kenmore     Washington        47.75670075
+## 49                          1840 Brewing Company             Milwaukee      Wisconsin        43.00436242
+##              longitude  meanLat  meanLong distFromMean
+## 1                 &lt;NA&gt; 40.67213 -102.9174           NA
+## 2         -111.5860662 40.67213 -102.9174    11.291767
+## 3         -110.9927505 40.67213 -102.9174    11.670387
+## 4          -117.129593 40.67213 -102.9174    16.288165
+## 5  -122.66505504468803 40.67213 -102.9174    19.893148
+## 6          -118.802397 40.67213 -102.9174    17.170516
+## 7         -119.9036592 40.67213 -102.9174    17.267140
+## 8         -104.9853655 40.67213 -102.9174     2.260461
+## 9         -104.8667206 40.67213 -102.9174     2.337168
+## 10        -105.1319826 40.67213 -102.9174     2.320711
+## 11        -104.9839636 40.67213 -102.9174     2.258306
+## 12        -75.37816436 40.67213 -102.9174    27.611309
+## 13         -116.202929 40.67213 -102.9174    13.608290
+## 14         -89.0503635 40.67213 -102.9174    13.915078
+## 15          -86.627954 40.67213 -102.9174    16.301184
+## 16        -87.26887786 40.67213 -102.9174    15.675999
+## 17          -87.517422 40.67213 -102.9174    15.428884
+## 18                &lt;NA&gt; 40.67213 -102.9174           NA
+## 19        -70.94594149 40.67213 -102.9174    32.003627
+## 20        -84.43116792 40.67213 -102.9174    18.556638
+## 21        -93.38952559 40.67213 -102.9174    10.548254
+## 22                &lt;NA&gt; 40.67213 -102.9174           NA
+## 23                &lt;NA&gt; 40.67213 -102.9174           NA
+## 24          -88.750264 40.67213 -102.9174    15.658969
+## 25        -110.9004865 40.67213 -102.9174     9.912410
+## 26        -119.7732015 40.67213 -102.9174    16.895289
+## 27                &lt;NA&gt; 40.67213 -102.9174           NA
+## 28         -75.2565195 40.67213 -102.9174    27.780048
+## 29                &lt;NA&gt; 40.67213 -102.9174           NA
+## 30                &lt;NA&gt; 40.67213 -102.9174           NA
+## 31        -75.97176063 40.67213 -102.9174    27.514329
+## 32        -84.70634815 40.67213 -102.9174    18.276568
+## 33         -84.3183801 40.67213 -102.9174    18.645662
+## 34 -121.28170597038259 40.67213 -102.9174    18.679044
+## 35 -121.32880209261799 40.67213 -102.9174    18.720033
+## 36        -121.2809536 40.67213 -102.9174    18.679105
+## 37        -122.6855056 40.67213 -102.9174    20.355257
+## 38        -118.9218754 40.67213 -102.9174    16.436199
+## 39        -122.6487531 40.67213 -102.9174    20.307746
+## 40        -80.15020356 40.67213 -102.9174    22.767809
+## 41                &lt;NA&gt; 40.67213 -102.9174           NA
+## 42         -95.5186591 40.67213 -102.9174    13.025850
+## 43                &lt;NA&gt; 40.67213 -102.9174           NA
+## 44                &lt;NA&gt; 40.67213 -102.9174           NA
+## 45                &lt;NA&gt; 40.67213 -102.9174           NA
+## 46 -122.87558226136872 40.67213 -102.9174    21.200694
+## 47         -122.485982 40.67213 -102.9174    21.174910
+## 48        -122.2415652 40.67213 -102.9174    20.581865
+## 49        -87.90606942 40.67213 -102.9174    15.191458</code></pre>
 <p>Now we are a bit further away than expected, so it appears that
 although close, this data is not quite representative or unbiased.
 Visual inspection of the tibble shows us that 6 results are from Oregon,
 with California and Colorado having 4 each; it seems reasonable to
 assume this is why our means are northwest of where we expected.</p>
 <p>A visual representation can help solidify our findings. We can use a
-histogram for this. Here is a histogram including the brewery from
-Ireland. Though clearly skewed right here, it looks like it could be
-considered nearly normally-distributed without the outlier. The x-axis
-shows us the distance from the mean and each bar’s height represents the
-frequency that breweries were that corresponding distance from the
-mean.</p>
+histogram for this. We started by creating a base plot object
+<code>g</code> using <code>ggplot()</code> with <code>usDist</code> as
+the input and using an <code>aes()</code> statement to set the x-value
+to <code>distFromMean</code> by default. Then we used
+<code>geom_histogram()</code> to create the actual histogram layer and
+setting the outline color of the bars to blue and filling the bars with
+white. Finally, a <code>labs()</code> statement was used to name the
+axes and title and the <code>theme()</code> statement was used to center
+the title.</p>
+<p>Here, the histogram includes the brewery from Ireland. Though clearly
+skewed right, it looks like it could be considered nearly
+normally-distributed without the outlier. The x-axis shows us the
+distance from the mean and each bar’s height represents the frequency
+that breweries were that corresponding distance from the mean.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(usDist, <span class="fu">aes</span>(<span class="at">x =</span> distFromMean))</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>g <span class="sc">+</span> <span class="fu">geom_histogram</span>(<span class="at">color =</span> <span class="dv">4</span>, <span class="at">fill =</span> <span class="st">&quot;white&quot;</span>) <span class="sc">+</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Distance of Brewery from Mean&quot;</span>, <span class="at">x =</span> <span class="st">&quot;Distance&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Count&quot;</span>) <span class="sc">+</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
-<p>Here is the histogram without the brewery from Ireland. Again, it
-looks nearly normally-distributed. This indicates that it is nearly
-representative of the population. Still, it is important to note that we
-couldn’t make assumptions about the population with this data. As the
-above histogram, the x-axis is the distance from the mean and the y-axis
+<p>Here is the histogram without the brewery from Ireland. Notice we
+used <code>na.omit()</code> to omit the <code>NA</code> values that
+showed up for <code>latitude</code> and <code>longitude</code> (which
+can’t be properly plotted anyway), but because “Killeshin” is the only
+city outside of the U.S., it was a convenient way to exclude it from the
+data. Without the outlier, the plot shows a lot of gaps. Because this is
+representing continuous data, we felt it was appropriate to experiment
+with <code>binwidth =</code> and <code>bins =</code> to minimize the
+gaps. Ultimately, we settled on <code>bins = 10</code>, while keeping
+the color, fill, and labels the same as before.</p>
+<p>As with the previous plot, this histogram looks nearly
+normally-distributed. This indicates that it is nearly representative of
+the population. Still, it is important to note that we couldn’t make
+assumptions about the population with this data. As with the above
+histogram, the x-axis is the distance from the mean and the y-axis
 consists of the corresponding frequencies of breweries’ distances from
 the mean.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">na.omit</span>(usDist), <span class="fu">aes</span>(<span class="at">x =</span> distFromMean))</span>
@@ -901,6 +1182,20 @@ of New York.</p>
 this, we will investigate latitude and longitude values across brewery
 types. Additionally, we may want to look at the means of each type to
 see if they have significant variance.</p>
+<p>We started by creating a new object called <code>nyDist</code> that
+uses the modified <code>ny</code> dataset and selects the
+<code>name</code>, <code>brewery_type</code>, <code>latitude</code>, and
+<code>longitude</code> variables. Because we’re interested in whether
+patterns exist by brewery type, we used
+<code>group_by(brewery_type)</code> to group the data by
+<code>brewery_type</code> and perform separate calculations per level of
+the groups. We used <code>mutate()</code> again to add columns for newly
+calculated <code>meanLat</code> and <code>meanLong</code>; again we had
+to remember to set the variables to numeric using
+<code>as.numeric</code> and being careful to ignore <code>NA</code>
+values by setting <code>na.rm = TRUE</code>. Finally, we used the
+<code>arrange()</code> function to arrange the data by our newly created
+variable.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>nyDist <span class="ot">&lt;-</span> ny <span class="sc">%&gt;%</span> </span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(name, brewery_type, latitude, longitude) <span class="sc">%&gt;%</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(brewery_type) <span class="sc">%&gt;%</span></span>
@@ -909,6 +1204,7 @@ see if they have significant variance.</p>
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(meanLat)</span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>nyDist</span></code></pre></div>
 <pre><code>## # A tibble: 50 x 6
+## # Groups:   brewery_type [6]
 ##    name                                    brewery_type latitude    longitude    meanLat meanLong
 ##    &lt;chr&gt;                                   &lt;chr&gt;        &lt;chr&gt;       &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;
 ##  1 Anheuser-Busch Inc Ã¢Â€Â“ Baldwinsville large        43.16510925 -76.31159343    41.6    -74.1
@@ -923,7 +1219,19 @@ see if they have significant variance.</p>
 ## 10 Amber Lantern Brewing Company           brewpub      42.7408423  -78.132363      42.5    -74.9
 ## # ... with 40 more rows</code></pre>
 <p>Now that we have the data, let’s create a scatter plot to look for
-obvious patterns.</p>
+obvious patterns. As before, we created a base <code>g</code> object
+using <code>ggplot()</code> and we used <code>na.omit()</code> again –
+this time to make sure <code>NA</code> doesn’t show up on the y-axis.
+This time we added a <code>y =</code> to the <code>aes()</code>
+statement since a scatter plot needs a variable on both axes. We used a
+<code>geom_point()</code> layer to create the actual scatter plot and
+specified <code>color = brewery_type</code> in the <code>aes()</code>
+statement to display breweries by type using different colors (and
+automatically creating a nice legend). As before, a <code>labs()</code>
+layer was used to name the axes and give the plot a title. The first
+<code>theme()</code> layer was used to rotate the x-axis 90 degrees so
+the longitude values could be legible, while the second
+<code>theme()</code> layer was used to center the title.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">na.omit</span>(nyDist), <span class="fu">aes</span>(<span class="at">x =</span> longitude, <span class="at">y =</span> latitude))</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>g <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> brewery_type)) <span class="sc">+</span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">&quot;Brewery Type&quot;</span>, <span class="at">x =</span> <span class="st">&quot;Longitude&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Latitude&quot;</span>) <span class="sc">+</span></span>
@@ -931,10 +1239,28 @@ obvious patterns.</p>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;NY Breweries by Type&quot;</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
-<p>There doesn’t appear to be any sort of obvious pattern that would
-suggest a preference of location to build a brewery, but there are
-clusters or groups of breweries by type. We believe this suggests the
-influence of competition.</p>
+<p>As the labels would suggest, this plots the longitude vs. latitude of
+each brewery in our dataset. Looking at the plot, there doesn’t appear
+to be any sort of obvious pattern that would suggest a preference of
+location to build a brewery, but there are clusters or groups of
+breweries by type. We believe this suggests the influence of
+competition.</p>
+<p>Finally, let’s look at a breakdown of some summary statistics for
+this numerical data at each setting of the <code>brewery_type</code>
+variable. To do this, we used the same <code>nyDist</code> dataset in
+conjunction with the <code>summarize()</code> function to print a tibble
+of <code>meanLat</code>, <code>meanLong</code>, along with
+<code>sdLat</code> and <code>sdLong</code> that we created using the
+built-in <code>sd()</code> function. Like in previous calculations, it
+was important to set <code>latitude</code> and <code>longitude</code> as
+numeric values using <code>as.numeric()</code> and omitting
+<code>NA</code> values from the calculations using
+<code>na.rm = TRUE</code>.</p>
+<p>The values of <code>meanLat</code> and <code>meanLong</code> are very
+similar across all categories of <code>brewery_type</code>. We believe
+this suggests an even spattering of types across all available locations
+– this could be understood to indicate that no major confounders exist
+that dictate where a type of brewery may be established.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>nyDist <span class="sc">%&gt;%</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanLat =</span> <span class="fu">mean</span>(<span class="fu">as.numeric</span>(latitude), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">meanLong =</span> <span class="fu">mean</span>(<span class="fu">as.numeric</span>(longitude), <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
@@ -1011,7 +1337,7 @@ bar graph.</p>
 <span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Boxplot of Latitudes by Brewery Type&quot;</span>,</span>
 <span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Brewery Type&quot;</span>,</span>
 <span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Latitude in Degrees&quot;</span>)</span></code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(combined, <span class="fu">aes</span>(<span class="at">x =</span> brewery_type, <span class="at">y =</span> <span class="fu">as.numeric</span>(longitude)))</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>g <span class="sc">+</span> <span class="fu">geom_boxplot</span>(<span class="at">fill =</span> <span class="st">&quot;blue&quot;</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_jitter</span>() <span class="sc">+</span></span>
@@ -1019,7 +1345,7 @@ bar graph.</p>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Boxplot of Longitudes by Brewery Type&quot;</span>,</span>
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">&quot;Brewery Type&quot;</span>,</span>
 <span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">&quot;Longitude in Degrees&quot;</span>)</span></code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 
 </body>
 </html>
