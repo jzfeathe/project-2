@@ -11,17 +11,32 @@ library(tidyverse)
 library(jsonlite)
 ```
 
-# Requirements
+# Overview
 
-The following packages were used to create this document:
-  + `knitr`: used to document code in R Markdown format
-  + `httr`: used to connect to the API
-  + `tidyverse`: used for pipe operators and plotting
-  + `jsonlite`: used for interacting with JSON in the API
+The purpose of this vignette is to explain how to use a function created for
+interacting with a specific API, as well as demonstrate various types of
+analyses that can be conducted on the data obtained from its use. The [Beer API](https://www.openbrewerydb.org/) is a free API that contains publicly
+available address and contact information for breweries, cideries, brewpubs, and
+bottleshops all over the world.
+
+## Requirements
+
+The following packages were used to create this document: 
+
+  + `knitr`: used to document code in R Markdown format  
+  + `httr`: used to connect to the API  
+  + `tidyverse`: used for pipe operators and plotting  
+  + `jsonlite`: used for interacting with JSON in the API  
 
 # API Function
 
-Default pulls breweries
+The function we will use to query the API uses one endpoint, or connection point
+between the API and server, at <https://api.openbrewerydb.org/breweries>. Six
+different modifications, each passed as separate arguments of the function, 
+allow the user to filter the returned API data based on any combination of 
+single values of the variables of interest.
+
+
 
 ```{r}
 get_brewery <- function(city = NULL, state = NULL, usa = TRUE, type = NULL, 
