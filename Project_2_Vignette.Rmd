@@ -424,10 +424,25 @@ g + geom_bar(aes(fill = brewery_type)) +
     scale_fill_discrete(name = "Brewery Type", 
                         labels = c("Brewpub", "Closed", "Contract", "Large",
                                    "Micro", "Proprietor")
-  )
+                        )
 
 micro <- get_brewery(type = "micro")
 large <- get_brewery(type = "large")
 combined <- bind_rows(micro, large)
+
+g <- ggplot(combined, aes(x = brewery_type, y = as.numeric(latitude)))
+g + geom_boxplot(fill = "red", na.rm = TRUE) +
+    geom_jitter() +
+    labs(title = "Boxplot of Latitudes by Brewery Type",
+         x = "Brewery Type",
+         y = "Latitude in Degrees")
+
+g <- ggplot(combined, aes(x = brewery_type, y = as.numeric(longitude)))
+g + geom_boxplot(fill = "blue", na.rm = TRUE) +
+    geom_jitter() +
+    coord_flip() +
+    labs(title = "Boxplot of Longitudes by Brewery Type",
+         x = "Brewery Type",
+         y = "Longitude in Degrees")
 
 ```
