@@ -2,13 +2,6 @@
 title: "Project 2"
 author: "Justin Feathers & Luke Perkins"
 date: "2022-10-08"
-output:
-  html_document:
-    toc: true
-    toc_depth: 2
-    toc_float: true
-    code_folding: show
-    df_print: tibble
 ---
 
 The purpose of this vignette is to explain how to use a function created for
