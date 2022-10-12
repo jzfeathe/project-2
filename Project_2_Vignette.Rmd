@@ -6,9 +6,10 @@ date: "2022-10-08"
 
 The purpose of this vignette is to explain how to use a function created for
 interacting with a specific API, as well as demonstrate various types of
-analyses that can be conducted on the data obtained from its use. The [Beer API](https://www.openbrewerydb.org/) is a free API that contains publicly
-available address and contact information for breweries, cideries, brewpubs, and
-bottleshops all over the world.
+analyses that can be conducted on the data obtained from its use. 
+The [Beer API](https://www.openbrewerydb.org/) is a free API that 
+contains publicly available address and contact information for breweries, 
+cideries, brewpubs, and bottleshops all over the world.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
@@ -181,6 +182,15 @@ noMod <- get_brewery()
 Given that most of the results are from the U.S., it seems reasonable to assume we should land
 somewhere in Kansas (the center of the U.S.) using the means of the latitudes and longitudes 
 if the results from the call are representative -- that is, they are unbiased and evenly spread.
+We started by taking the unmodified data and subsetting it by selecting only the `name`, `city`,
+`state`, `latitude`, and `longitude` variables. Really, the only necessary variables to perform
+the calculations are `latitude` and `longitude`, but the others provide nice labels for
+understanding the locations of the breweries. From there, we used `mutate()` to add new variables
+to our dataset that find the means for both `latitude` and `longitude`, being careful to set 
+them as numeric variables and ignoring `NA` values to ensure the calculation would work. Finally,
+we created a `distFromMean` variable using the familiar distance formula 
+d = sqrt[(x~2~ - x~1~)^2^ + (y~2~ - y~1~)^2^]
+
 ```{r}
 usDist <- noMod %>%
   select(name, city, state, latitude, longitude) %>%
@@ -192,8 +202,13 @@ usDist
 ```
 
 How did we do? We can do another call using `get_brewery(state = "kansas")` to check.
-We can compare `meanLat` and `meanLong` with the latitude and longitude values from
-breweries located in Kansas.
+Because we're only doing a quick check against the `latitude` and `longitude` values,
+we're not concerned with grabbing the other variables this time. We can compare 
+`meanLat` and `meanLong` with the latitude and longitude values from
+breweries located in Kansas. As a side note, this API allows for searching by partial
+match, so calling `get_brewery(state = "kansas")` returns results for both Kansas
+and Arkansas.
+
 ```{r}
 get_brewery(state = "kansas") %>%
   select(latitude, longitude)
@@ -210,7 +225,13 @@ get_brewery(state = "nebraska") %>%
 
 We can see that these values more closely align with the means we found. So what
 happened? If we look back at `usDist`, we can see one glaring outlier from 
-Killeshin, Ireland. Let's remove that and see if our results are better.
+Killeshin, Ireland. Let's remove that and see if our results are better. Because
+the mean values in `usDist` were calculated using all observations, we need to 
+remember to start over with the unmodified data `noMod`. Again, we select all
+variables of interest with `select()`, but this time we can use a `filter()`
+function to select observations where `city` does not equal "Killeshin." Then,
+we simply calculate the means as before with the subsetted data.
+
 
 ```{r}
 noMod %>%
@@ -229,7 +250,14 @@ us that 6 results are from Oregon, with California and Colorado having 4 each; i
 seems reasonable to assume this is why our means are northwest of where we expected.
 
 A visual representation can help solidify our findings. We can use a histogram for this.
-Here is a histogram including the brewery from Ireland. Though clearly skewed right here,
+We started by creating a base plot object `g` using `ggplot()` with `usDist` as the input
+and using an `aes()` statement to set the x-value to `distFromMean` by default.
+Then we used `geom_histogram()` to create the actual histogram layer and setting the
+outline color of the bars to blue and filling the bars with white. Finally, a `labs()`
+statement was used to name the axes and title and the `theme()` statement was used
+to center the title.
+
+Here, the histogram includes the brewery from Ireland. Though clearly skewed right,
 it looks like it could be considered nearly normally-distributed without the outlier.
 The x-axis shows us the distance from the mean and each bar's height represents the
 frequency that breweries were that corresponding distance from the mean.
@@ -241,10 +269,19 @@ g + geom_histogram(color = 4, fill = "white") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-Here is the histogram without the brewery from Ireland. Again, it looks nearly
-normally-distributed. This indicates that it is nearly representative of the population.
+Here is the histogram without the brewery from Ireland. Notice we used `na.omit()`
+to omit the `NA` values that showed up for `latitude` and `longitude` (which can't
+be properly plotted anyway), but because "Killeshin" is the only city outside of 
+the U.S., it was a convenient way to exclude it from the data. Without the outlier,
+the plot shows a lot of gaps. Because this is representing continuous data, we felt
+it was appropriate to experiment with `binwidth =` and `bins =` to minimize the gaps.
+Ultimately, we settled on `bins = 10`, while keeping the color, fill, and labels the
+same as before. 
+
+As with the previous plot, this histogram looks nearly normally-distributed. This 
+indicates that it is nearly representative of the population.
 Still, it is important to note that we couldn't make assumptions about the population
-with this data. As the above histogram, the x-axis is the distance from the mean and 
+with this data. As with the above histogram, the x-axis is the distance from the mean and 
 the y-axis consists of the corresponding frequencies of breweries' distances from the mean.
 
 ```{r}
@@ -255,8 +292,8 @@ g + geom_histogram(color = 4, fill = "white", bins = 10) +
 ```
 
 
-Next, let's look at some more specific data by calling the function `get_brewery(state = "ny")` to get brewery data
-for the state of New York.
+Next, let's look at some more specific data by calling the function `get_brewery(state = "ny")`
+to get brewery data for the state of New York.
 ```{r}
 #Get brewery data for NY
 ny <- get_brewery(state = "ny")
@@ -265,6 +302,8 @@ ny <- get_brewery(state = "ny")
 We want to see if there are any patterns by type of brewery. To do this, we will investigate
 latitude and longitude values across brewery types. Additionally, we may want to look at
 the means of each type to see if they have significant variance.
+
+We started 
 ```{r}
 nyDist <- ny %>% 
   select(name, brewery_type, latitude, longitude) %>%
