@@ -353,13 +353,16 @@ ny <- get_brewery(state = "ny")
 ```
 
 We want to see if there are any patterns by type of brewery. To do this, we will investigate
-latitude and longitude values across brewery types.
+latitude and longitude values across brewery types. Additionally, we may want to look at
+the means of each type to see if they have significant variance.
 ```{r}
 nyDist <- ny %>% 
   select(name, brewery_type, latitude, longitude) %>%
   group_by(brewery_type) %>%
-  mutate(Mean_Lat = mean(as.numeric(latitude), na.rm = TRUE), 
-         Mean_Long = mean(as.numeric(longitude), na.rm = TRUE))
+  mutate(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
+         meanLong = mean(as.numeric(longitude), na.rm = TRUE)) %>%
+  arrange(meanLat)
+nyDist
 ```
 
 Now that we have the data, let's create a scatter plot to look for obvious patterns.
@@ -370,4 +373,14 @@ g + geom_point(aes(color = brewery_type)) +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
     labs(title = "NY Breweries by Type", hjust = 0.5) +
     theme(plot.title = element_text(hjust = 0.5))
+```
+
+There doesn't appear to be any sort of obvious pattern that would suggest a preference
+of location to build a brewery, but there are clusters or groups of breweries by type.
+We believe this suggests the influence of competition. 
+```{r}
+nyDist %>%
+  summarize(meanLat = mean(as.numeric(latitude), na.rm = TRUE), 
+            meanLong = mean(as.numeric(longitude), na.rm = TRUE),
+            sdLat = sd(latitude, na.rm = TRUE), sdLong = sd(longitude, na.rm = TRUE))
 ```
