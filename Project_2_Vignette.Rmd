@@ -55,18 +55,19 @@ The function takes arguments of `city`, `state`, `usa`, which is defaulted to
 which is boolean, and `latitude` and `longitude`, which are numeric, all
 arguments must be provided as character strings. Note that character strings
 can be provided as partial matches, as well, e.g., `name = "brewery"` will
-return records with brewery anywhere in the name. If no arguments are specified,
-the API call is run as an open query, pulling data from the entire data set. To reduce bandwidth, the results are limited to 20 per call. This function appends 
-"?per_page=50" to the base url, allowing 50 results, which is stored as the new
-url that each modification will append to, and is now the function's default 
-result limit.
+return records with "brewery" anywhere in the name. If no arguments are 
+specified, the API call is run as an open query, pulling data from the entire 
+data set. To reduce bandwidth, the results are limited to 20 per call. This 
+function appends "?per_page=50" to the base url, allowing 50 results, which is 
+stored as the new url that each modification will append to, and is now the 
+function's default result limit.
 
 The code following the function's setup can be divided into sections
 corresponding to each argument, but they all operate similarly. The argument is 
 first checked with an `if` statement to see if the user supplied a value. If so,
 the logic confirms that the correct data type was used, and then adds the 
 parameter string to the current url string, along with the corresponding value,
-provided by user, potentially modified to match the formatting needed by the
+provided by the user, potentially modified to match the formatting needed by the
 API. The new url string is then saved as the url to append future parameter
 strings to. After the url has been either modified or left unchanged, the next
 argument is evaluated and the cycle repeats.
@@ -85,7 +86,7 @@ Explanations for each argument section separated by line breaks are as follows:
 
   1. The first argument section checks if the user provided a city via the
   `if()` function evaluating condition `!is.null(city)`. If a city was not
-  provided, as is the default argument, the rest of the code portion is skipped.
+  provided, as is the default argument, the rest of the code portion is skipped 
   and the next argument is evaluated. If a city was provided, another `if` 
   statement is evaluated to check that the data type is character via 
   `!is.character(city)`. If it is not, the function errors and the user is
@@ -463,39 +464,80 @@ nyDist %>%
             sdLat = sd(latitude, na.rm = TRUE), sdLong = sd(longitude, na.rm = TRUE))
 ```
 
+Let's take a look at the geographic distribution of brewery types another way.
+The United States Census Bureau divides US states into [four regions](https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States), 
+Northeast, Midwest, South, and West. It may be interesting to see a breakdown
+of these broad regions by brewery type.
 
-Derive Region variable from state, make contingency tables, create bar graph.
+First, we'll take our open data set `noMod`, and use the `mutate()` function to
+derive a new variable, `Region`. The vectorized `if_else()` function is used in 
+to conjunction with `%in%` and a vector of state names to create a mapping table
+of sorts. If the state variable, referenced using `noMod$state` matches a state
+in the vector, the region string at the end of the argument is stored in the new
+variable. If it is not present, the next `if_else()` chain is evaluated and the
+cycle repeats. The catch-all condition at the end of the condition maps the
+region as "Not US". `select()` then inserts the `Region` variable after the
+sequenced `id` to `state` variables, and the `everything()` function outputs the
+remaining columns in order. The data frame is saved as `brew_reg`, which is then
+printed for viewing.
 
 ```{r}
-brew <- get_brewery()
-
-brew_reg <- brew %>%
+brew_reg <- noMod %>%
   mutate(Region = 
-    if_else(brew$state %in%
+    if_else(noMod$state %in%
     c("Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", 
       "Vermont", "New Jersey", "New York", "Pennsylvania"),
     "Northeast",
-    if_else(brew$state %in%
+    if_else(noMod$state %in%
     c("Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin", "Iowa", "Kansas", 
       "Minnesota", "Missouri", "Nebraska", "North Dakota", "South Dakota"),
     "Midwest",
-    if_else(brew$state %in%
+    if_else(noMod$state %in%
     c("Delaware", "Florida", "Georgia", "Maryland", "North Carolina",
       "South Carolina", "Virginia", "Washington D.C.", "West Virginia", 
       "Alabama", "Kentucky", "Mississippi", "Tennessee", "Arkansas",
       "Louisiana", "Oklahoma", "Texas"),
     "South",
-    if_else(brew$state %in%
+    if_else(noMod$state %in%
     c("Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", "Utah",
       "Wyoming", "Alaska", "California","Hawaii","Oregon","Washington"),
     "West", 
     "Not US"))))) %>%
   select(id:state, Region, everything())
 
+brew_reg
+```
+
+We use the `table()` function to create two one-way contingency tables by
+`Region` and `brewery_type`, and a two-way contingency table to view the
+intersections on both variables.
+
+```{r}
 table(brew_reg$Region)
 table(brew_reg$brewery_type)
 table(brew_reg$Region, brew_reg$brewery_type)
+```
 
+From the count of breweries in our contingency tables, we might theorize that 
+the West is the most popular region for breweries, and the South, West, and 
+Midwest regions are pretty close in popularity. Looking at brewery types, there 
+are many more microbreweries than other types. This is not surprising given the 
+growth in popularity of craft beer in recent years. The two-way table indicates 
+that microbreweries are the most popular brewery type in each region, however, 
+in the West, large breweries are comparable in number.
+
+Let's show these results graphically with a bar plot. We'll create a base
+plotting object, `g`, using the `ggplot()` function. We use `brew_reg` as our
+data set, and set `Region` as our explanatory variable via an aesthetic mapping,
+`aes()`. Next, a geom layer is added to our base plotting object via
+`geom_bar()`. Here, we map `brewery_type` to the bar fills as an aesthetic. A
+label layer is then added, setting x-axis, y-axis, and titles to the first,
+second, and third arguments, respectively. A legend for the fills is added using
+a scale layer, `scale_fill_discrete()`. The title is the `name` argument, and
+a vector of strings is used to label the levels of brewery type. The graph
+provides visual support to our table analyses.
+
+```{r}
 g <- ggplot(brew_reg, aes(x = Region))
 g + geom_bar(aes(fill = brewery_type)) +
     labs(x = "Geographic Region",
@@ -505,7 +547,29 @@ g + geom_bar(aes(fill = brewery_type)) +
                         labels = c("Brewpub", "Closed", "Contract", "Large",
                                    "Micro", "Proprietor")
                         )
+```
 
+Now that we believe `micro` breweries to be the most popular type, let's compare 
+only that business model with a contrasting one, `large`. From the API host,
+`micro` is described as "most craft breweries" and `large` is: "A very large
+brewery. Likely not for visitors."
+
+To conduct this comparison, we'll enlarge our sample size, by calling 
+`get_brewery()` with a modification of "micro" as the `type` to get 50 results
+of only microbreweries, and another call of the function with "large" as the
+`type` to get 50 results of only large breweries. These data sets are saved and
+passed as arguments to `bind_rows()` to combine the 100 records into one data
+set, saved as `combined`.
+
+We'll create a boxplot using `ggplot()` to establish our base plotting object 
+`g` again. Using the `aes()` function, `brewery_type` is mapped as our 
+explanatory variable and `latitude`, converted to numeric type with 
+`as.numeric()`, is mapped as our response. A geom layer is added with
+`geom_boxplot()`, using the `fill` argument to color the boxes red, and `na.rm`
+to remove missing values. We add jittered points via `geom_jitter()` and a label
+layer with `labs()`, specifying the title, x-axis label, and y-axis label.
+
+```{r}
 micro <- get_brewery(type = "micro")
 large <- get_brewery(type = "large")
 combined <- bind_rows(micro, large)
@@ -516,7 +580,23 @@ g + geom_boxplot(fill = "red", na.rm = TRUE) +
     labs(title = "Boxplot of Latitudes by Brewery Type",
          x = "Brewery Type",
          y = "Latitude in Degrees")
+```
 
+From the plot, it appears that both `large` and `micro` breweries have symmetric
+distributions of latitude with medians around 40 degrees North. The minimum for 
+both brewery types is about 26 degrees N and maximum is about 53 degrees N. 
+Q1 for both is around 34 degrees N, but `large` breweries have a higher Q3 of 44 
+degrees N, compared to `micro` breweries' Q3 of 42 degrees N.
+
+Let's examine the breweries' latitudes in more detail now.
+
+We'll plot using very similar code to the prior boxplot, but now `longitude` is
+mapped as the response variable. We'll change the box colors to blue via the
+`fill` argument of `geom_boxplot()`, and we'll add rotate the axis via the
+`coord_flip()` function, as well as update our titles and labels in the label
+layer.
+
+```{r}
 g <- ggplot(combined, aes(x = brewery_type, y = as.numeric(longitude)))
 g + geom_boxplot(fill = "blue", na.rm = TRUE) +
     geom_jitter() +
@@ -524,5 +604,26 @@ g + geom_boxplot(fill = "blue", na.rm = TRUE) +
     labs(title = "Boxplot of Longitudes by Brewery Type",
          x = "Brewery Type",
          y = "Longitude in Degrees")
-
 ```
+
+Looking at the longitude plot, `large` breweries have some indication of 
+positive skew (eastward), while `micro` breweries skew more negatively
+(westward). There are outliers in both distributions, however, the `large`
+distribution has a few more. Though they both have similar ranges, the `large`
+brewery has a wider box, indicating the IQR is greater. This is conjunction with
+the presence of more outliers in the `large` category leads us to believe there
+may be more variance in the longitudes of `large` breweries. The median of the
+`large` group is lower, as well, at about -110 degrees West, compared to the
+`micro` group's median of around -90 degrees W. From this information, we might
+theorize that large breweries tend to be located further West than 
+microbreweries, which is in line with our analysis of contingency tables 
+earlier.
+
+# Conclusion
+
+A lot of interesting information can be obtained using APIs. In this vignette,
+we created a custom function designed for use with the 
+[Beer API](https://www.openbrewerydb.org/), then explained the reasoning behind
+the function and demonstrated how to use it. Finally, we explored data 
+collected from the API and created some visualizations and analyses.
+

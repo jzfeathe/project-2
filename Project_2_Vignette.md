@@ -314,22 +314,20 @@ usDist
 ```
 
     ## # A tibble: 50 × 8
-    ##    name    city  state latit…¹ longi…² meanLat
-    ##    <chr>   <chr> <chr> <chr>   <chr>     <dbl>
-    ##  1 10-56 … Knox  Indi… 41.289… -86.62…    41.0
-    ##  2 10 Bar… Bend  Oreg… 44.086… -121.2…    41.0
-    ##  3 10 Bar… Bend  Oreg… 44.057… -121.3…    41.0
-    ##  4 10 Bar… Bend  Oreg… 44.091… -121.2…    41.0
-    ##  5 10 Bar… Boise Idaho 43.618… -116.2…    41.0
-    ##  6 10 Bar… Denv… Colo… 39.759… -104.9…    41.0
-    ##  7 10 Bar… Port… Oreg… 45.525… -122.6…    41.0
-    ##  8 10 Bar… San … Cali… 32.714… -117.1…    41.0
-    ##  9 10 Tor… Reno  Neva… 39.517… -119.7…    41.0
-    ## 10 101 Br… Quil… Wash… 47.823… -122.8…    41.0
-    ## # … with 40 more rows, 2 more variables:
-    ## #   meanLong <dbl>, distFromMean <dbl>, and
-    ## #   abbreviated variable names ¹​latitude,
-    ## #   ²​longitude
+    ##    name                      city  state latit…¹ longi…² meanLat meanL…³ distF…⁴
+    ##    <chr>                     <chr> <chr> <chr>   <chr>     <dbl>   <dbl>   <dbl>
+    ##  1 10-56 Brewing Company     Knox  Indi… 41.289… -86.62…    41.0   -100.   13.8 
+    ##  2 10 Barrel Brewing Co      Bend  Oreg… 44.086… -121.2…    41.0   -100.   21.1 
+    ##  3 10 Barrel Brewing Co      Bend  Oreg… 44.057… -121.3…    41.0   -100.   21.1 
+    ##  4 10 Barrel Brewing Co - B… Bend  Oreg… 44.091… -121.2…    41.0   -100.   21.1 
+    ##  5 10 Barrel Brewing Co - B… Boise Idaho 43.618… -116.2…    41.0   -100.   16.0 
+    ##  6 10 Barrel Brewing Co - D… Denv… Colo… 39.759… -104.9…    41.0   -100.    4.69
+    ##  7 10 Barrel Brewing Co      Port… Oreg… 45.525… -122.6…    41.0   -100.   22.7 
+    ##  8 10 Barrel Brewing Co      San … Cali… 32.714… -117.1…    41.0   -100.   18.6 
+    ##  9 10 Torr Distilling and B… Reno  Neva… 39.517… -119.7…    41.0   -100.   19.4 
+    ## 10 101 Brewery               Quil… Wash… 47.823… -122.8…    41.0   -100.   23.4 
+    ## # … with 40 more rows, and abbreviated variable names ¹​latitude, ²​longitude,
+    ## #   ³​meanLong, ⁴​distFromMean
 
 How did we do? We can do another call using
 `get_brewery(state = "kansas")` to check. Because we’re only doing a
@@ -407,22 +405,20 @@ noMod %>%
 ```
 
     ## # A tibble: 49 × 8
-    ##    name    city  state latit…¹ longi…² meanLat
-    ##    <chr>   <chr> <chr> <chr>   <chr>     <dbl>
-    ##  1 12 Wes… Gilb… Ariz… <NA>    <NA>       40.7
-    ##  2 12 Wes… Mesa  Ariz… 33.436… -111.5…    40.7
-    ##  3 1912 B… Tucs… Ariz… 32.246… -110.9…    40.7
-    ##  4 10 Bar… San … Cali… 32.714… -117.1…    40.7
-    ##  5 101 No… Peta… Cali… 38.270… -122.6…    40.7
-    ##  6 14 Can… West… Cali… 34.153… -118.8…    40.7
-    ##  7 1850 B… Mari… Cali… 37.570… -119.9…    40.7
-    ##  8 10 Bar… Denv… Colo… 39.759… -104.9…    40.7
-    ##  9 105 We… Cast… Colo… 39.382… -104.8…    40.7
-    ## 10 12Degr… Loui… Colo… 39.978… -105.1…    40.7
-    ## # … with 39 more rows, 2 more variables:
-    ## #   meanLong <dbl>, distFromMean <dbl>, and
-    ## #   abbreviated variable names ¹​latitude,
-    ## #   ²​longitude
+    ##    name                      city  state latit…¹ longi…² meanLat meanL…³ distF…⁴
+    ##    <chr>                     <chr> <chr> <chr>   <chr>     <dbl>   <dbl>   <dbl>
+    ##  1 12 West Brewing Company   Gilb… Ariz… <NA>    <NA>       40.7   -103.   NA   
+    ##  2 12 West Brewing Company … Mesa  Ariz… 33.436… -111.5…    40.7   -103.   11.3 
+    ##  3 1912 Brewing              Tucs… Ariz… 32.246… -110.9…    40.7   -103.   11.7 
+    ##  4 10 Barrel Brewing Co      San … Cali… 32.714… -117.1…    40.7   -103.   16.3 
+    ##  5 101 North Brewing Company Peta… Cali… 38.270… -122.6…    40.7   -103.   19.9 
+    ##  6 14 Cannons Brewing Compa… West… Cali… 34.153… -118.8…    40.7   -103.   17.2 
+    ##  7 1850 Brewing Company      Mari… Cali… 37.570… -119.9…    40.7   -103.   17.3 
+    ##  8 10 Barrel Brewing Co - D… Denv… Colo… 39.759… -104.9…    40.7   -103.    2.26
+    ##  9 105 West Brewing Co       Cast… Colo… 39.382… -104.8…    40.7   -103.    2.34
+    ## 10 12Degree Brewing          Loui… Colo… 39.978… -105.1…    40.7   -103.    2.32
+    ## # … with 39 more rows, and abbreviated variable names ¹​latitude, ²​longitude,
+    ## #   ³​meanLong, ⁴​distFromMean
 
 Now we are a bit further away than expected, so it appears that although
 close, this data is not quite representative or unbiased. Visual
@@ -452,7 +448,7 @@ g + geom_histogram(color = 4, fill = "white") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](Project_2_Vignette_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 Here is the histogram without the brewery from Ireland. Notice we used
 `na.omit()` to omit the `NA` values that showed up for `latitude` and
@@ -479,7 +475,7 @@ g + geom_histogram(color = 4, fill = "white", bins = 10) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](Project_2_Vignette_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 Next, let’s look at some more specific data by calling the function
 `get_brewery(state = "ny")` to get brewery data for the state of New
@@ -517,22 +513,20 @@ nyDist
 ```
 
     ## # A tibble: 50 × 6
-    ##    name        brewe…¹ latit…² longi…³ meanLat
-    ##    <chr>       <chr>   <chr>   <chr>     <dbl>
-    ##  1 "Anheuser-… large   43.165… -76.31…    41.6
-    ##  2 "Blue Poin… large   40.759… -73.02…    41.6
-    ##  3 "Blue Poin… large   40.766… -73.02…    41.6
-    ##  4 "12 Gates … brewpub <NA>    <NA>       42.5
-    ##  5 "16 Stone … brewpub 43.242… -75.25…    42.5
-    ##  6 "2 Way Bre… brewpub 41.508… -73.98…    42.5
-    ##  7 "42 North … brewpub 42.769… -78.60…    42.5
-    ##  8 "6 Degrees… brewpub 41.158… -73.86…    42.5
-    ##  9 "Alewife B… brewpub 40.742… -73.95…    42.5
-    ## 10 "Amber Lan… brewpub 42.740… -78.13…    42.5
-    ## # … with 40 more rows, 1 more variable:
-    ## #   meanLong <dbl>, and abbreviated variable
-    ## #   names ¹​brewery_type, ²​latitude,
-    ## #   ³​longitude
+    ##    name                                  brewe…¹ latit…² longi…³ meanLat meanL…⁴
+    ##    <chr>                                 <chr>   <chr>   <chr>     <dbl>   <dbl>
+    ##  1 "Anheuser-Busch Inc â\u0080\u0093 Ba… large   43.165… -76.31…    41.6   -74.1
+    ##  2 "Blue Point Brewing Co"               large   40.759… -73.02…    41.6   -74.1
+    ##  3 "Blue Point Brewing"                  large   40.766… -73.02…    41.6   -74.1
+    ##  4 "12 Gates Brewing Company"            brewpub <NA>    <NA>       42.5   -74.9
+    ##  5 "16 Stone Brewpub"                    brewpub 43.242… -75.25…    42.5   -74.9
+    ##  6 "2 Way Brewing Company"               brewpub 41.508… -73.98…    42.5   -74.9
+    ##  7 "42 North Brewing Company"            brewpub 42.769… -78.60…    42.5   -74.9
+    ##  8 "6 Degrees of Separation"             brewpub 41.158… -73.86…    42.5   -74.9
+    ##  9 "Alewife Brewing Company"             brewpub 40.742… -73.95…    42.5   -74.9
+    ## 10 "Amber Lantern Brewing Company"       brewpub 42.740… -78.13…    42.5   -74.9
+    ## # … with 40 more rows, and abbreviated variable names ¹​brewery_type, ²​latitude,
+    ## #   ³​longitude, ⁴​meanLong
 
 Now that we have the data, let’s create a scatter plot to look for
 obvious patterns. As before, we created a base `g` object using
@@ -556,7 +550,7 @@ g + geom_point(aes(color = brewery_type)) +
     theme(plot.title = element_text(hjust = 0.5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](Project_2_Vignette_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 As the labels would suggest, this plots the longitude vs. latitude of
 each brewery in our dataset. Looking at the plot, there doesn’t appear
@@ -645,25 +639,22 @@ brew_reg
 ```
 
     ## # A tibble: 50 × 18
-    ##    id     name  brewe…¹ street addre…² addre…³
-    ##    <chr>  <chr> <chr>   <chr>  <chr>   <lgl>  
-    ##  1 10-56… 10-5… micro   400 B… <NA>    NA     
-    ##  2 10-ba… 10 B… large   62970… <NA>    NA     
-    ##  3 10-ba… 10 B… large   1135 … <NA>    NA     
-    ##  4 10-ba… 10 B… large   62950… <NA>    NA     
-    ##  5 10-ba… 10 B… large   826 W… <NA>    NA     
-    ##  6 10-ba… 10 B… large   2620 … <NA>    NA     
-    ##  7 10-ba… 10 B… large   1411 … <NA>    NA     
-    ##  8 10-ba… 10 B… large   1501 … <NA>    NA     
-    ##  9 10-to… 10 T… micro   490 M… <NA>    NA     
-    ## 10 101-b… 101 … brewpub 29479… <NA>    NA     
-    ## # … with 40 more rows, 12 more variables:
-    ## #   city <chr>, state <chr>, Region <chr>,
-    ## #   county_province <chr>, postal_code <chr>,
-    ## #   country <chr>, longitude <chr>,
-    ## #   latitude <chr>, phone <chr>,
-    ## #   website_url <chr>, updated_at <chr>,
-    ## #   created_at <chr>, and abbreviated …
+    ##    id    name  brewe…¹ street addre…² addre…³ city  state Region count…⁴ posta…⁵
+    ##    <chr> <chr> <chr>   <chr>  <chr>   <lgl>   <chr> <chr> <chr>  <chr>   <chr>  
+    ##  1 10-5… 10-5… micro   400 B… <NA>    NA      Knox  Indi… Midwe… <NA>    46534  
+    ##  2 10-b… 10 B… large   62970… <NA>    NA      Bend  Oreg… West   <NA>    97701-…
+    ##  3 10-b… 10 B… large   1135 … <NA>    NA      Bend  Oreg… West   <NA>    97703-…
+    ##  4 10-b… 10 B… large   62950… <NA>    NA      Bend  Oreg… West   <NA>    97701  
+    ##  5 10-b… 10 B… large   826 W… <NA>    NA      Boise Idaho West   <NA>    83702-…
+    ##  6 10-b… 10 B… large   2620 … <NA>    NA      Denv… Colo… West   <NA>    80205-…
+    ##  7 10-b… 10 B… large   1411 … <NA>    NA      Port… Oreg… West   <NA>    97209-…
+    ##  8 10-b… 10 B… large   1501 … <NA>    NA      San … Cali… West   <NA>    92101-…
+    ##  9 10-t… 10 T… micro   490 M… <NA>    NA      Reno  Neva… West   <NA>    89502  
+    ## 10 101-… 101 … brewpub 29479… <NA>    NA      Quil… Wash… West   <NA>    98376-…
+    ## # … with 40 more rows, 7 more variables: country <chr>, longitude <chr>,
+    ## #   latitude <chr>, phone <chr>, website_url <chr>, updated_at <chr>,
+    ## #   created_at <chr>, and abbreviated variable names ¹​brewery_type, ²​address_2,
+    ## #   ³​address_3, ⁴​county_province, ⁵​postal_code
 
 We use the `table()` function to create two one-way contingency tables
 by `Region` and `brewery_type`, and a two-way contingency table to view
@@ -674,39 +665,28 @@ table(brew_reg$Region)
 ```
 
     ## 
-    ##   Midwest Northeast    Not US     South 
-    ##        11         7         1         8 
-    ##      West 
-    ##        23
+    ##   Midwest Northeast    Not US     South      West 
+    ##        11         7         1         8        23
 
 ``` r
 table(brew_reg$brewery_type)
 ```
 
     ## 
-    ##    brewpub     closed   contract      large 
-    ##          9          2          1          7 
-    ##      micro proprietor 
-    ##         30          1
+    ##    brewpub     closed   contract      large      micro proprietor 
+    ##          9          2          1          7         30          1
 
 ``` r
 table(brew_reg$Region, brew_reg$brewery_type)
 ```
 
     ##            
-    ##             brewpub closed contract large
-    ##   Midwest         1      0        0     0
-    ##   Northeast       2      0        0     0
-    ##   Not US          0      0        0     0
-    ##   South           2      0        1     0
-    ##   West            4      2        0     7
-    ##            
-    ##             micro proprietor
-    ##   Midwest      10          0
-    ##   Northeast     5          0
-    ##   Not US        1          0
-    ##   South         5          0
-    ##   West          9          1
+    ##             brewpub closed contract large micro proprietor
+    ##   Midwest         1      0        0     0    10          0
+    ##   Northeast       2      0        0     0     5          0
+    ##   Not US          0      0        0     0     1          0
+    ##   South           2      0        1     0     5          0
+    ##   West            4      2        0     7     9          1
 
 From the count of breweries in our contingency tables, we might theorize
 that the West is the most popular region for breweries, and the South,
@@ -741,7 +721,7 @@ g + geom_bar(aes(fill = brewery_type)) +
                         )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](Project_2_Vignette_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 Now that we believe `micro` breweries to be the most popular type, let’s
 compare only that business model with a contrasting one, `large`. From
@@ -777,7 +757,7 @@ g + geom_boxplot(fill = "red", na.rm = TRUE) +
          y = "Latitude in Degrees")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](Project_2_Vignette_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 From the plot, it appears that both `large` and `micro` breweries have
 symmetric distributions of latitude with medians around 40 degrees
@@ -804,7 +784,7 @@ g + geom_boxplot(fill = "blue", na.rm = TRUE) +
          y = "Longitude in Degrees")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](Project_2_Vignette_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 Looking at the longitude plot, `large` breweries have some indication of
 positive skew (eastward), while `micro` breweries skew more negatively
